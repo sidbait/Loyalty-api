@@ -1,0 +1,49 @@
+{
+  "name": "loyalty-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "loyalty-api.js",
+  "dependencies": {
+    "atob": "^2.1.2",
+    "aws-sdk": "^2.443.0",
+    "bluebird": "^3.5.3",
+    "btoa": "^1.2.1",
+    "config": "^3.0.0",
+    "convert-excel-to-json": "^1.6.0",
+    "cors": "^2.8.5",
+    "crossfilter": "^1.3.12",
+    "csvtojson": "^2.0.8",
+    "execution-time": "^1.3.0",
+    "express": "^4.16.4",
+    "express-inject-middleware": "^0.1.1",
+    "js-sha512": "^0.8.0",
+    "json-to-pivot-json": "^1.0.1",
+    "jsonwebtoken": "^8.4.0",
+    "kue": "^0.11.6",
+    "kue-ui": "^0.1.0",
+    "md5": "^2.2.1",
+    "moment": "^2.23.0",
+    "morgan": "^1.9.1",
+    "multer": "^1.4.1",
+    "mv": "^2.1.1",
+    "nodemailer": "^4.7.0",
+    "pg": "^7.7.1",
+    "redis": "^2.8.0",
+    "request": "^2.88.0",
+    "tracer": "^0.9.6",
+    "uniqid": "^5.0.3",
+    "validatorjs": "^3.15.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "DB=pg_public NODE_ENV=production nodemon bigpesa_admin_api.js",
+    "test": "DB=pg_stg nodemon bigpesa_admin_api.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/nazara/bigpesa-india/bigpesa-dashbord-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
