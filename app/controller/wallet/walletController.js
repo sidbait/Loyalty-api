@@ -6,38 +6,6 @@ const customMsgTypeCM = "COMMON_MESSAGE";
 
 module.exports = {
 
-    getPlayerWalletBalance: async function (req, res) {
-
-        let _player_id;
-        let _np_balance;
-
-        try {
-            _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"]);
-
-        } catch (error) {
-            _player_id = null;
-        }
-
-        if (_player_id) {
-            try {
-
-                _np_balance = await services.commonServices.getWalletBalance(_player_id);
-
-                customResult = { np_balance: _np_balance };
-
-                services.sendResponse.sendWithCode(req, res, customResult, customMsgType, "GET_SUCCESS");
-
-            }
-            catch (error) {
-                services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
-            }
-        } else {
-            services.sendResponse.sendWithCode(req, res, 'Invalid Access Token', customMsgTypeCM, "VALIDATION_FAILED");
-
-        }
-
-    },
-
     walletTransaction: async function (req, res) {
 
         let rules = {
@@ -64,7 +32,7 @@ module.exports = {
 
             try {
                 _app_id = await services.commonServices.getAppId(req.headers["app-key"]);
-                _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"]);
+                _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
                 _np_balance = await services.commonServices.getWalletBalance(_player_id);
 
             } catch (error) {

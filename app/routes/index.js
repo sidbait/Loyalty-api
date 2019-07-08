@@ -17,6 +17,7 @@ const loginRoute = require('../routes/loginRoute');
 //Module Wise Routes
 const appRoutes = require('../routes/app/appRoutes');
 const walletRoutes = require('../routes/wallet/walletRoutes');
+const playerRoutes = require('../routes/player/playerRoutes');
 
 apiRoutes.get('/', function (req, res) {
     sendResponse.sendWithCode(req, res, null, "COMMON_MESSAGE", "WELCOME");
@@ -28,7 +29,8 @@ app.use(middleware.injectMiddleware(
         validate.validateAccessToken,
     ],
     [
-        apiRoutes_player.use('/wallet', walletRoutes)
+        apiRoutes_player.use('/wallet', walletRoutes),
+        apiRoutes_login.use('/player', playerRoutes)
     ]
 ));
 
@@ -42,6 +44,8 @@ app.use(middleware.injectMiddleware(
         apiRoutes_login.use('/app', appRoutes)
     ]
 ));
+
+
 
 app.use(apiRoutes)
 app.use(apiRoutes_login)

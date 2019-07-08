@@ -3,7 +3,7 @@ module.exports = {
     "COMMON_MESSAGE": {
         "WELCOME": {
             success: true,
-            message: "Welcome to Nazara CMS!",
+            message: "Welcome to Nazara Loyalty-API!",
             messageCode: "WELCOME",
             statusCode: 200
         },
