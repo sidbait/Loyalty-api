@@ -33,7 +33,7 @@ module.exports = {
             let nz_access_token = null
 
             try {
-                _app_id = await services.commonServices.getAppId(req.headers["app-key"]);
+                _app_id = await services.commonServices.getAppId(req.headers["x-loyalty-app-key"]);
 
             } catch (error) {
                 _app_id = null;
@@ -113,7 +113,7 @@ module.exports = {
         let customResult;
 
         try {
-            _app_id = await services.commonServices.getAppId(req.headers["app-key"]);
+            _app_id = await services.commonServices.getAppId(req.headers["x-loyalty-app-key"]);
 
         } catch (error) {
             _app_id = null;
@@ -160,7 +160,7 @@ module.exports = {
         let _app_id;
 
         try {
-            _app_id = await services.commonServices.getAppId(req.headers["app-key"]);
+            _app_id = await services.commonServices.getAppId(req.headers["x-loyalty-app-key"]);
 
         } catch (error) {
             _app_id = null;

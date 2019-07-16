@@ -18,6 +18,7 @@ const loginRoute = require('../routes/loginRoute');
 const appRoutes = require('../routes/app/appRoutes');
 const walletRoutes = require('../routes/wallet/walletRoutes');
 const playerRoutes = require('../routes/player/playerRoutes');
+const rewardRoutes = require('../routes/rewards/rewardRoutes');
 
 apiRoutes.get('/', function (req, res) {
     sendResponse.sendWithCode(req, res, null, "COMMON_MESSAGE", "WELCOME");
@@ -30,7 +31,8 @@ app.use(middleware.injectMiddleware(
     ],
     [
         apiRoutes_player.use('/wallet', walletRoutes),
-        apiRoutes_login.use('/player', playerRoutes)
+        apiRoutes_login.use('/player', playerRoutes),
+        apiRoutes_login.use('/rewards', rewardRoutes)
     ]
 ));
 

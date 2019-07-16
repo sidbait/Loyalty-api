@@ -31,7 +31,7 @@ module.exports = {
             let _txn_status = req.body.txn_status ? req.body.txn_status.toUpperCase() : 'PENDING';
 
             try {
-                _app_id = await services.commonServices.getAppId(req.headers["app-key"]);
+                _app_id = await services.commonServices.getAppId(req.headers["x-loyalty-app-key"]);
                 _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
                 _np_balance = await services.commonServices.getWalletBalance(_player_id);
 

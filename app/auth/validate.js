@@ -43,19 +43,21 @@ module.exports = {
 
     validateAppSecret: async (req, res, next) => {
 
+        console.log(req.headers);
+
         let rules = {
-            "app-key": 'required',
+            "x-loyalty-app-key": 'required',
         };
 
         let custom_message = {
-            "required.app-key": "Please provide the App Key!",
+            "required.x-loyalty-app-key": "Please provide the App Key!",
         }
 
         let validation = new services.validator(req.headers, rules, custom_message);
 
         if (validation.passes()) {
 
-            var appKey = req.headers["app-key"] ? req.headers["app-key"] : '';
+            var appKey = req.headers["x-loyalty-app-key"] ? req.headers["x-loyalty-app-key"] : '';
 
             let _query = {
                 text: `SELECT * FROM fn_validate_appkey($1)`,

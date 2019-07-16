@@ -7,20 +7,25 @@ module.exports = {
 
         return new Promise(async function (resolve, reject) {
             try {
-                let _query = {
-                    text: `SELECT app_id FROM tbl_app_master WHERE app_key = $1`,
-                    values: [appKey]
-                }
 
-                let dbResult = await pgConnection.executeQuery('loyalty', _query);
+                if (appKey) {
+                    let _query = {
+                        text: `SELECT app_id FROM tbl_app_master WHERE app_key = $1`,
+                        values: [appKey]
+                    }
 
-                console.log('getAppId', dbResult);
-                
+                    let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
-                if (dbResult && dbResult.length > 0) {
-                    resolve(dbResult[0].app_id);
-                }
-                else {
+                    console.log('getAppId', dbResult);
+
+
+                    if (dbResult && dbResult.length > 0) {
+                        resolve(dbResult[0].app_id);
+                    }
+                    else {
+                        resolve(null);
+                    }
+                } else {
                     resolve(null);
                 }
 
@@ -86,6 +91,27 @@ module.exports = {
 
         });
 
-    }
+    },
+
+    getTimeDiif: (dt1, dt2) => {
+        var diff =(dt2.getTime() - dt1.getTime()) / 1000;
+        // diff /= 60;
+        return Math.abs(Math.round(diff));
+    },
+
+    randomString(length) {
+
+        var text = "";
+    
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    
+        for (var i = 0; i < length; i++) {
+    
+          text += possible.charAt(Math.floor(Math.random() * possible.length));
+    
+        }
+    
+        return text;
+      }
 
 }
