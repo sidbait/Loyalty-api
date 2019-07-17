@@ -273,6 +273,66 @@ module.exports = {
         else {
             services.sendResponse.sendWithCode(req, res, validation.errors.errors, "COMMON_MESSAGE", "VALIDATION_FAILED");
         }
-    }
+    },
 
+    getAllSocket: async (_app_id,callback) => {
+        let _player_id;
+       
+        let customResult;
+
+
+        let _query = {
+            text: "SELECT * from fn_get_rewards($1,$2,$3)",
+            values: [null, null, 'ACTIVE']
+        }
+
+        let dbResult = await pgConnection.executeQuery('loyalty', _query)
+
+        if (dbResult && dbResult.length > 0) {
+
+            console.log('ALL ==', dbResult[0]);
+
+            if (dbResult[0].data && dbResult[0].data.length > 0) {
+
+                let rewardsData;
+                let joinData;
+
+                rewardsData = dbResult[0].data
+                console.log('rewardsData ==', rewardsData);
+                joinData = dbResult[1].data
+                console.log('joinData ==', joinData);
+
+
+                let rewardsDataLength = rewardsData.length
+
+                for (let i = 0; i < rewardsDataLength; i++) {
+
+                    let startTime = new Date(rewardsData[i].from_date)
+                    console.log('startTime', startTime);
+                    let repeatMin = rewardsData[i].repeat_min
+
+                    let endTime = new Date(startTime.getTime() + repeatMin * 60000);
+                    let currentDate = new Date();
+                    currentDate.setHours(currentDate.getHours() + 5);
+                    currentDate.setMinutes(currentDate.getMinutes() + 30);
+                    let remainingSeconds = services.commonServices.getTimeDiif(endTime, currentDate)
+
+                    console.log('endTime', endTime);
+                    console.log('remainingSeconds', endTime, currentDate, remainingSeconds);
+                    rewardsData[i].remaining_seconds = remainingSeconds
+
+                    for (let joinCount = 0; joinCount < joinData.length; joinCount++) {
+                        if (rewardsData[i].reward_id == joinData[joinCount].reward_id) {
+                            rewardsData[i].joins = joinData[joinCount].join
+                        }
+                    }
+                }
+                callback(rewardsData); 
+            } else {
+                callback( []);
+            }
+        } else {
+            callback( []);
+        } 
+    } 
 }
