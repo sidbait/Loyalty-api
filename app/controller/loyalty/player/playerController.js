@@ -13,7 +13,7 @@ module.exports = {
         let _np_balance;
 
         try {
-            _app_id = await services.commonServices.getAppId(req.headers["x-loyalty-app-key"]);
+            _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
             _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
         } catch (error) {
             _app_id = null;
@@ -46,7 +46,7 @@ module.exports = {
         let _app_id;
 
         try {
-            _app_id = await services.commonServices.getAppId(req.headers["x-loyalty-app-key"]);
+            _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
             _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
 
         } catch (error) {
