@@ -93,18 +93,28 @@ module.exports = {
 
     getInviteCode: async function (req, res) {
 
+        try {
+            _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
+            _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
+        } catch (error) {
+            _app_id = null;
+            _player_id = null;
+        }
 
-        let rules = {
-            "player_id": 'required',
-            "app_id": 'required',
-        };
+        // let rules = {
+        //     "player_id": 'required',
+        //     "app_id": 'required',
+        // };
 
-        let validation = new services.validator(req.body, rules);
+        // console.log(_app_id,_player_id);
+        // res.send('ok');
 
-        if (validation.passes()) {
+        // let validation = new services.validator(req.body, rules);
 
-            let _app_id = req.body.app_id ? req.body.app_id : null;;
-            let _player_id = req.body.player_id ? req.body.player_id : null;
+        if (_app_id && _player_id) {
+
+            // let _app_id = req.body.app_id ? req.body.app_id : null;;
+            // let _player_id = req.body.player_id ? req.body.player_id : null;
 
             console.log('_app_id', _app_id);
             console.log('_player_id', _player_id);
@@ -120,7 +130,7 @@ module.exports = {
             }
 
         } else {
-            services.sendResponse.sendWithCode(req, res, validation.errors.errors, customMsgTypeCM, "VALIDATION_FAILED");
+            services.sendResponse.sendWithCode(req, res, {}, customMsgTypeCM, "VALIDATION_FAILED");
 
         }
     },

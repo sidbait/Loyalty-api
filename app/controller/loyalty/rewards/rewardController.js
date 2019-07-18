@@ -18,7 +18,7 @@ module.exports = {
         let customResult;
 
         try {
-            _app_id = await services.commonServices.getAppId(req.headers["x-loyalty-app-key"]);
+            _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
             _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
 
         } catch (error) {
@@ -117,7 +117,7 @@ module.exports = {
             let rewardBuyAmt;
 
             try {
-                _app_id = await services.commonServices.getAppId(req.headers["x-loyalty-app-key"]);
+                _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
                 _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
 
             } catch (error) {
@@ -216,7 +216,7 @@ module.exports = {
             let _reward_id = req.body.reward_id ? req.body.reward_id : null;
 
             try {
-                _app_id = await services.commonServices.getAppId(req.headers["x-loyalty-app-key"]);
+                _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
                 _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
 
             } catch (error) {
