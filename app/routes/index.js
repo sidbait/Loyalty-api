@@ -19,9 +19,18 @@ const appRoutes = require('../routes/app/appRoutes');
 const walletRoutes = require('../routes/wallet/walletRoutes');
 const playerRoutes = require('../routes/player/playerRoutes');
 const rewardRoutes = require('../routes/rewards/rewardRoutes');
+var io = require('socket.io').listen(4444);
+var socketFunctions = require('../service/socketFunction');
+io.on('connection', function(socket){
+    console.log('a user connected');
+});
 
 apiRoutes.get('/', function (req, res) {
     sendResponse.sendWithCode(req, res, null, "COMMON_MESSAGE", "WELCOME");
+});
+apiRoutes.get('/sendMsg', function (req, res) { 
+    socketFunctions.sendSockets(io); 
+    res.send('ok');
 });
 
 app.use(middleware.injectMiddleware(

@@ -188,9 +188,9 @@ module.exports = {
     },
 
     getTimeDiif: (dt1, dt2) => {
-        var diff = (dt2.getTime() - dt1.getTime()) / 1000;
+        var diff = (dt1.getTime() - dt2.getTime()) / 1000;
         // diff /= 60;
-        return Math.abs(Math.round(diff));
+        return Math.round(diff);
     },
 
     randomString(length) {
@@ -209,8 +209,69 @@ module.exports = {
     },
 
 
-    getRewardWinner: (rewardId) => {
-        
+    declareWinner: (rewardId) => {
+        return new Promise(async function (resolve, reject) {
+            try {
+
+
+                let winCountQuery = {
+                    text: `SELECT count(1) FROM tbl_reward_winners where reward_id = $1`,
+                    values: [rewardId]
+                }
+
+                let winCount = await pgConnection.executeQuery('loyalty', winCountQuery);
+
+                if (parseInt(winCount) == 0) {
+
+                    let _query = {
+                        text: `SELECT * FROM fn_get_reward_winner($1)`,
+                        values: [rewardId]
+                    }
+
+                    let dbResult = await pgConnection.executeQuery('loyalty', _query);
+
+                    if (dbResult && dbResult.length > 0 && dbResult[0].data) {
+                        resolve(dbResult[0].data);
+                    }
+                    else {
+                        resolve(null);
+                    }
+
+                } else {
+                    resolve(null);
+                }
+
+            } catch (error) {
+                reject(error)
+            }
+
+        });
+    },
+
+
+    testFun: (rewardId) => {
+
+        return new Promise(async function (resolve, reject) {
+            try {
+
+                let _winQuery = {
+                    text: "select * from fn_get_winner_detais($1)",
+                    values: [rewardId]
+                }
+
+                let winResult = await pgConnection.executeQuery('loyalty', _winQuery)
+
+                console.log(winResult);
+
+                console.log(winResult[0].data);
+
+
+            } catch (err) {
+                console.error(err);
+
+            }
+       
+        });
     }
 
 }
