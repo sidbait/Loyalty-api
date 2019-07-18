@@ -1,4 +1,4 @@
-var rewController = require('../controller/rewards/rewardController');
+var rewController = require('../controller/loyalty/rewards/rewardController');
 var results = [];
 module.exports = {
     sendSockets: async function (io) {

@@ -12,13 +12,15 @@ const apiRoutes_player = express.Router();
 const apiRoutes_login = express.Router();
 
 //Module Wise Routes
-const appRoutes = require('../routes/app/appRoutes');
-const walletRoutes = require('../routes/wallet/walletRoutes');
-const playerRoutes = require('../routes/player/playerRoutes');
-const rewardRoutes = require('../routes/rewards/rewardRoutes');
+const appRoutes = require('../routes/loyalty/app/appRoutes');
+const walletRoutes = require('../routes/loyalty/wallet/walletRoutes');
+const playerRoutes = require('../routes/loyalty/player/playerRoutes');
+const rewardRoutes = require('../routes/loyalty/rewards/rewardRoutes');
 const checkReferralRoutes = require('../routes/referral/checkReferralRoutes');
+
 var io = require('socket.io').listen(4444);
 var socketFunctions = require('../service/socketFunction');
+
 io.on('connection', function(socket){
     console.log('a user connected');
 });
