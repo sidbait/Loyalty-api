@@ -36,6 +36,12 @@ module.exports = {
             message: "Invalid Access Token!",
             messageCode: "INVALID_ACCESS_TOKEN",
             statusCode: 401
+        },
+        "INSUFFICIENT_BALANCE": {
+            success: false,
+            message: "Insufficient Balance in Wallet",
+            messageCode: "INSUFFICIENT_BALANCE",
+            statusCode: 400
         }
     },
 
