@@ -1,0 +1,16 @@
+GET  http://localhost:3001/v1/checkReferral/onRegistration?player_id=12&inviteCode=34v0jkbpjy72zjsp HTTP/1.1
+
+###
+POST http://localhost:3001/v1/checkReferral/getInviteCode HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+x-loyalty-app-key: 'asdsawrsadasdwxfadwfasq'
+
+player_id=11&app_id=1
+
+
+###
+POST http://localhost:3001/v1/checkReferral/submitRefCode HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+x-loyalty-app-key: 'asdsawrsadasdwxfadwfasq'
+
+player_id=12&app_id=1&refcode=jy5tpq85

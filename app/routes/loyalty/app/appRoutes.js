@@ -1,6 +1,6 @@
 var appRoutes = express.Router();
 
-var appController = require('../../controller/app/appController');
+var appController = require('../../../controller/loyalty/app/appController');
 
 appRoutes.post('/player-register', appController.register);
 appRoutes.post('/getDetails', appController.getDetails);

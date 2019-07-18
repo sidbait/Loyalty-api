@@ -11,14 +11,13 @@ const apiRoutes = express.Router();
 const apiRoutes_player = express.Router();
 const apiRoutes_login = express.Router();
 
-//Login/Register Routes
-const loginRoute = require('../routes/loginRoute');
-
 //Module Wise Routes
-const appRoutes = require('../routes/app/appRoutes');
-const walletRoutes = require('../routes/wallet/walletRoutes');
-const playerRoutes = require('../routes/player/playerRoutes');
-const rewardRoutes = require('../routes/rewards/rewardRoutes');
+const appRoutes = require('../routes/loyalty/app/appRoutes');
+const walletRoutes = require('../routes/loyalty/wallet/walletRoutes');
+const playerRoutes = require('../routes/loyalty/player/playerRoutes');
+const checkReferralRoutes = require('../routes/referral/checkReferralRoutes');
+
+const rewardRoutes = require('../routes/loyalty/rewards/rewardRoutes');
 
 apiRoutes.get('/', function (req, res) {
     sendResponse.sendWithCode(req, res, null, "COMMON_MESSAGE", "WELCOME");
@@ -26,13 +25,14 @@ apiRoutes.get('/', function (req, res) {
 
 app.use(middleware.injectMiddleware(
     [
-        validate.validateAppSecret,
-        validate.validateAccessToken,
+        // validate.validateAppSecret,
+        // validate.validateAccessToken,
     ],
     [
         apiRoutes_player.use('/wallet', walletRoutes),
         apiRoutes_login.use('/player', playerRoutes),
-        apiRoutes_login.use('/rewards', rewardRoutes)
+        apiRoutes_login.use('/rewards', rewardRoutes),
+        apiRoutes_player.use('/checkReferral', checkReferralRoutes)
     ]
 ));
 
@@ -42,7 +42,6 @@ app.use(middleware.injectMiddleware(
         validate.validateAppSecret
     ],
     [
-        apiRoutes_login.use(loginRoute),
         apiRoutes_login.use('/app', appRoutes)
     ]
 ));

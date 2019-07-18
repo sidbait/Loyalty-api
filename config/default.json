@@ -29,6 +29,9 @@
         "host": "192.168.5.129",
         "port": 5432
       }
+    },
+    "mongo":{
+      "centralizeddb": "mongodb://localhost:27017/centralizeddb"
     }
   },
   "jwt_sessions": {

@@ -65,7 +65,7 @@ module.exports = {
                 'db query: ' + JSON.stringify(dbQuery) + '\n' +
                 'dbError: ' + JSON.stringify(dbError) + '\n' +
                 'err desc: ' + errorDesc + '\n' +
-                // 'dbResult: ' + JSON.stringify(dbResult) + '\n' +
+                'dbResult: ' + JSON.stringify(dbResult) + '\n' +
                 'timeToExecute: ' + timeToExecute.preciseWords + '\n' +
                 '-------------------------------------------------------\n');
         }

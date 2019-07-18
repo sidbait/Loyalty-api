@@ -1,6 +1,6 @@
 var rewardRoutes = express.Router();
 
-var rewardController = require('../../controller/rewards/rewardController');
+var rewardController = require('../../../controller/loyalty/rewards/rewardController');
 
 rewardRoutes.post('/getAll', rewardController.getAll);
 rewardRoutes.post('/participate', rewardController.rewardParticipate);
