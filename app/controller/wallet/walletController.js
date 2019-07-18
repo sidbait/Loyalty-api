@@ -74,5 +74,53 @@ module.exports = {
             services.sendResponse.sendWithCode(req, res, validation.errors.errors, customMsgTypeCM, "VALIDATION_FAILED");
 
         }
+    },
+
+
+    walletHistory: async function (req, res) {
+
+            let _app_id;
+            let _player_id;
+
+            try {
+                _app_id = await services.commonServices.getAppId(req.headers["x-loyalty-app-key"]);
+                _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
+
+            } catch (error) {
+                _app_id = null;
+                _player_id = null;
+            }
+
+            console.log('_app_id', _app_id);
+            console.log('_player_id', _player_id);
+
+            if (_app_id && _player_id) {
+                //  let _selectQuery = 'SELECT * from fn_get_app($1,$2)'
+                let _query = {
+                    text: "SELECT * from tbl_wallet_transaction where player_id = $1",
+                    values: [_player_id]
+                }
+
+                try {
+                    let dbResult = await pgConnection.executeQuery('loyalty', _query)
+
+                    if (dbResult && dbResult.length > 0) {
+
+                        services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "GET_SUCCESS");
+                    } else {
+                        services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "NO_DATA_FOUND");
+                    }
+
+                }
+                catch (error) {
+                    services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
+                }
+
+            } else {
+                services.sendResponse.sendWithCode(req, res, 'Invalid App Key or PlayerId', customMsgTypeCM, "VALIDATION_FAILED");
+
+            }
+
+      
     }
 }

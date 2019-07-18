@@ -1,5 +1,6 @@
 
 const pgConnection = require('../model/pgConnection');
+var uniqid = require('uniqid');
 
 module.exports = {
 
@@ -51,7 +52,7 @@ module.exports = {
                 console.log('getPlayerIdByToken', dbResult);
 
                 if (dbResult && dbResult.length > 0) {
-                    resolve(dbResult[0].player_id);
+                    resolve(parseInt(dbResult[0].player_id));
                 }
                 else {
                     resolve(null);
@@ -93,8 +94,101 @@ module.exports = {
 
     },
 
+
+
+    walletTransaction: (txn_amt, app_id, player_id, reward_id = null, txn_type, txn_status, txn_mode, event_id = null, event_code = null, event_name = null, ) => {
+        return new Promise(async function (resolve, reject) {
+
+            let np_balance;
+            try {
+                np_balance = await module.exports.getWalletBalance(player_id)
+            } catch (error) {
+                console.log(error);
+
+                np_balance = 0
+            }
+
+            console.log('np_balance', np_balance, txn_type);
+
+
+            if (txn_type == 'DEBIT' && np_balance < txn_amt) {
+                resolve(false);
+            } else {
+
+                let _query = {
+                    text: "SELECT * from fn_update_wallet($1,$2,$3)",
+                    values: [player_id, txn_amt, txn_type]
+                }
+
+                try {
+
+                    let dbResult = await pgConnection.executeQuery('loyalty', _query)
+
+                    if (dbResult && dbResult[0].fn_update_wallet) {
+
+                        let _order_id = uniqid('ORD-');
+                        if (txn_type == 'CREDIT')
+                            _order_id = 'CR-' + _order_id
+                        else if (txn_type == 'DEBIT')
+                            _order_id = 'DB-' + _order_id
+                        else if (txn_type == 'REFUND')
+                            _order_id = 'RE-' + _order_id
+
+                        console.log('player_id', typeof player_id, player_id);
+
+                        console.log('player_id', typeof reward_id, reward_id);
+
+                        let _query = {
+                            text: "SELECT * from fn_wallet_transaction($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
+                            values: [app_id, player_id, event_id, event_code, event_name, np_balance, _order_id, txn_type, txn_status, txn_mode, reward_id]
+                        }
+
+                        let dbResult = await pgConnection.executeQuery('loyalty', _query)
+
+                        if (dbResult && dbResult.length > 0) {
+                            resolve(true);
+                        } else {
+                            resolve(false);
+                        }
+                    }
+
+                } catch (error) {
+                    reject(error)
+                }
+
+
+            }
+        });
+    },
+
+    getRewardBuyAmt: (rewardId) => {
+        return new Promise(async function (resolve, reject) {
+            try {
+                let _query = {
+                    text: `SELECT buy_amount FROM tbl_reward WHERE reward_id = $1`,
+                    values: [rewardId]
+                }
+
+                let dbResult = await pgConnection.executeQuery('loyalty', _query);
+
+                console.log('getRewardBuyAmt', dbResult);
+
+                if (dbResult && dbResult.length > 0) {
+                    resolve(parseInt(dbResult[0].buy_amount));
+                }
+                else {
+                    reject(null);
+                }
+
+            } catch (error) {
+                reject(error)
+            }
+
+        });
+    },
+
     getTimeDiif: (dt1, dt2) => {
-        var diff =(dt2.getTime() - dt1.getTime()) / 1000;
+        var diff = (dt2.getTime() - dt1.getTime()) / 1000;
         // diff /= 60;
         return Math.abs(Math.round(diff));
     },
@@ -102,16 +196,21 @@ module.exports = {
     randomString(length) {
 
         var text = "";
-    
+
         var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    
+
         for (var i = 0; i < length; i++) {
-    
-          text += possible.charAt(Math.floor(Math.random() * possible.length));
-    
+
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+
         }
-    
+
         return text;
-      }
+    },
+
+
+    getRewardWinner: (rewardId) => {
+        
+    }
 
 }

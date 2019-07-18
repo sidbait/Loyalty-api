@@ -12,7 +12,7 @@ module.exports = {
 
         let _player_id;
         let _app_id;
-        let _reward_id = req.body.reward_id ? req.body.reward_id : null;
+        let _reward_id = req.body.reward_id ? parseInt(req.body.reward_id) : null;
         let _status = req.body.status ? req.body.status.toUpperCase() : null;
 
         let customResult;
@@ -98,7 +98,6 @@ module.exports = {
         }
     },
 
-
     rewardParticipate: async (req, res) => {
         let rules = {
             "reward_id": 'required',
@@ -109,10 +108,13 @@ module.exports = {
         if (validation.passes()) {
             let _app_id;
             let _player_id;
-            let _reward_id = req.body.reward_id ? req.body.reward_id : null;
+            let _reward_id = req.body.reward_id ? parseInt(req.body.reward_id) : null;
             let _ticket_code = req.body.ticket_code ? req.body.ticket_code : null;
             let _txn_status = req.body.txn_status ? req.body.txn_status.toUpperCase() : 'ACTIVE';
             let _count = req.body.count ? req.body.count : 1;
+
+            let walletBal;
+            let rewardBuyAmt;
 
             try {
                 _app_id = await services.commonServices.getAppId(req.headers["x-loyalty-app-key"]);
@@ -125,20 +127,59 @@ module.exports = {
 
             if (_player_id) {
 
-                _ticket_code = services.commonServices.randomString(10)
-
-                let _query = {
-                    text: "SELECT * from fn_reward_participate($1,$2,$3,$4)",
-                    values: [_player_id, _reward_id, _ticket_code, _txn_status]
+                try {
+                    walletBal = await services.commonServices.getWalletBalance(_player_id)
+                    rewardBuyAmt = await services.commonServices.getRewardBuyAmt(_reward_id)
+                } catch (error) {
+                    walletBal = 0
+                    rewardBuyAmt = null
                 }
 
-                try {
+                if (walletBal >= (rewardBuyAmt * _count)) {
 
                     let dbResultArr = [];
                     for (let count = 0; count < _count; count++) {
-                        let dbResult = await pgConnection.executeQuery('loyalty', _query)
-                        dbResultArr.push(dbResult[0])
+
+                        let _walletBal = await services.commonServices.getWalletBalance(_player_id)
+                        let debitSuccess;
+
+                        console.log('player_id', typeof _player_id, _player_id);
+                            
+                            console.log('player_id', typeof _reward_id, _reward_id);
+
+                        try {
+                            debitSuccess = await services.commonServices.walletTransaction(rewardBuyAmt, _app_id, _player_id, _reward_id, 'DEBIT', 'SUCCESS', 'REWARD')
+                        } catch (error) {
+                            console.log(error);
+
+                            debitSuccess = false
+                        }
+
+                        console.log('debitSuccess', debitSuccess);
+                        
+
+                        if (debitSuccess) {
+                            _ticket_code = services.commonServices.randomString(10)
+
+                            let _query = {
+                                text: "SELECT * from fn_reward_participate($1,$2,$3,$4)",
+                                values: [_player_id, _reward_id, _ticket_code, _txn_status]
+                            }
+
+
+                            let dbResult = await pgConnection.executeQuery('loyalty', _query)
+
+                            console.log('fn_reward_participate', dbResult);
+
+
+                            dbResultArr.push(dbResult[0])
+
+                        }
                     }
+
+                    console.log("dbResultArr=============");
+                    console.log(dbResultArr);
+
 
                     if (dbResultArr && dbResultArr.length > 0) {
                         services.sendResponse.sendWithCode(req, res, dbResultArr, customMsgType, "GET_SUCCESS");
@@ -146,20 +187,17 @@ module.exports = {
                     } else {
                         services.sendResponse.sendWithCode(req, res, dbResultArr, customMsgType, "GET_FAILED");
                     }
+
+                } else {
+                    let customResponse = { np_balance: walletBal }
+                    services.sendResponse.sendWithCode(req, res, customResponse, customMsgTypeCM, "INSUFFICIENT_BALANCE");
                 }
-                catch (error) {
-
-                    console.log(error);
-
-                    services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
-                }
-
 
             } else {
-                services.sendResponse.sendWithCode(req, res, 'Invalid Access Token', customMsgTypeCM, "VALIDATION_FAILED");
+                services.sendResponse.sendWithCode(req, res, 'Invalid Access Token', customMsgTypeCM, "INVALID_ACCESS_TOKEN");
             }
-        }
-        else {
+
+        } else {
             services.sendResponse.sendWithCode(req, res, validation.errors.errors, "COMMON_MESSAGE", "VALIDATION_FAILED");
         }
     },
@@ -273,6 +311,10 @@ module.exports = {
         else {
             services.sendResponse.sendWithCode(req, res, validation.errors.errors, "COMMON_MESSAGE", "VALIDATION_FAILED");
         }
+    },
+
+    rewardWinner: async(req,res)=>{
+        services.commonServices.
     }
 
 }
