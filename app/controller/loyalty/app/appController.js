@@ -1,7 +1,7 @@
-const pgConnection = require('../../model/pgConnection');
-const services = require('../../service/service');
+const pgConnection = require('../../../model/pgConnection');
+const services = require('../../../service/service');
 const md5 = require('md5');
-const jwtToken = require('../../auth/jwtToken');
+const jwtToken = require('../../../auth/jwtToken');
 
 const customMsgType = "MASTER_MESSAGE";
 const customMsgTypeCM = "COMMON_MESSAGE";

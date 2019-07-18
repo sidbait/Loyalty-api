@@ -1,11 +1,11 @@
 var cors = require('cors');
-var kue = require('kue');
-var ui = require('kue-ui');
-var kueService = require('./app/service/kueService');
+var morgan = require('morgan');
+var MongoClient = require('mongodb').MongoClient
+    , assert = require('assert');
 
 express = require('express');
 bodyParser = require('body-parser');
-// request = require("request");
+
 path = require('path');
 multer = require('multer');
 
@@ -14,22 +14,12 @@ config = require('config');
 router = require('./app/routes');
 app = express();
 app.use(cors());
-var morgan = require('morgan')
+
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
-
-ui.setup({
-    apiURL: '/api', // IMPORTANT: specify the api url
-    baseURL: '/kue', // IMPORTANT: specify the base url
-    updateInterval: 5000 // Optional: Fetches new data every 5000 ms
-});
-
-/* // Mount kue JSON api
-app.use('/api', kue.app);
-// Mount UI
-app.use('/kue', ui.app); */
 
 //multer setup
 var storage = multer.diskStorage({
@@ -95,25 +85,16 @@ process.on('uncaughtException', function (err) {
     console.log(err.stack);
 });
 
-app.listen(config.app.port, function () {
+MongoClient.connect(config.db_connectionString.mongo.centralizeddb, { useNewUrlParser: true }, function (err, client) {
+    if (!err) {
+        // centralizeddb system
+        app.set('mongodb', client.db('centralizeddb'));
+        assert.equal(null, err);
+        console.log("Mongo DB Instance Connected Succesfully.");
+        app.listen(config.app.port, function () {
 
-    /* var scheduleCron = require('./app/scheduleCron');
-    scheduleCron.schedule(); */
-
-    console.log('Listening on port:' + config.app.port);
-    console.log('Welcome to LOYALTY API');
-    console.log(process.env.DB);
-
-   /*  kueService.processkue('executeQueryKue', function (isSuccess) {
-        if (isSuccess) {
-            console.log('data process from kue');
-        } else {
-            console.log('error while processing data from kue');
-        }
-    })
-
-    let dbui = require('./app/controller/dashboard/dashboardRedisController');
-
-    dbui.setDashboardRedis() */
-
+            console.log('Listening on port:' + config.app.port);
+            console.log('Welcome to LOYALTY API');
+        });
+    }
 });

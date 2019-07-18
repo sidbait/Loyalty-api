@@ -1,6 +1,6 @@
 var walletRoutes = express.Router();
 
-var walletController = require('../../controller/wallet/walletController');
+var walletController = require('../../../controller/loyalty/wallet/walletController');
 
 walletRoutes.post('/walletTransaction', walletController.walletTransaction);
 walletRoutes.post('/walletHistory', walletController.walletHistory);
