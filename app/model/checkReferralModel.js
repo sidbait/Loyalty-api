@@ -150,7 +150,7 @@ module.exports = {
 
 
                     if (dbResult && dbResult.length > 0) {
-                        
+
                         let _query = `select * from tbl_referrer_player_transaction where player_id =${player_id} and app_id =${appId}`;
 
                         let dbResult = await pgConnection.executeQuery('loyalty', _query);
@@ -177,10 +177,12 @@ module.exports = {
 
     },
 
-    getGoals: async (player_id, appId) => {
+    getGoals: async (player_id, appId, goalCode) => {
         return new Promise(async (resolve, reject) => {
             let _query = `select * from tbl_referrer_player_transaction where player_id =${player_id} and app_id =${appId}`;
-
+            if (goalCode) {
+                _query += `and goal_code = '${goalCode}'`;
+            }
             let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
             resolve(dbResult);
