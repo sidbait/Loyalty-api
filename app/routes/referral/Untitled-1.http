@@ -16,10 +16,10 @@ x-naz-app-key: 'bsafwesfsdfsdfasfasfasfas'
 player_id=12&app_id=1&refcode=jy5tpq85
 
 ###
-POST http://localhost:3001/v1/checkReferral/getInviteCode HTTP/1.1
+POST http://192.168.5.129:3001/v1/checkReferral/getInviteCode HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 x-naz-app-key: bsafwesfsdfsdfasfasfasfas
-access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjEyMzU1MDQsImRhdGEiOnsic3ViIjoiYXV0aGVudGljYXRpb24iLCJpc3MiOiJodHRwOi8vYmlncGVzYS5jb20iLCJwZXJtaXNzaW9ucyI6ImFsbCIsImlkZW50aXR5Ijp7InNvdXJjZSI6ImxveWFsdHktbnoiLCJwbGF5ZXJJZCI6IjEzIiwiYXBwSWQiOjIsImRhdGUiOiIyMDE5LTA3LTE4VDExOjUyOjI0LjE4M1oifX0sImlhdCI6MTU2MzQ1MDc0NH0.AvRJV1we587WVINq-7Dc2GSUERsbJl6tNNS70L6_l3Y
+access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjEyOTY0NDgsImRhdGEiOnsic3ViIjoiYXV0aGVudGljYXRpb24iLCJpc3MiOiJodHRwOi8vYmlncGVzYS5jb20iLCJwZXJtaXNzaW9ucyI6ImFsbCIsImlkZW50aXR5Ijp7InNvdXJjZSI6ImxveWFsdHktbnoiLCJwbGF5ZXJJZCI6IlNVQ0NFU1NfUkVHSVNURVJEIiwiYXBwSWQiOjIsImRhdGUiOiIyMDE5LTA3LTE5VDA0OjQ4OjA4LjM3OVoifX0sImlhdCI6MTU2MzUxMTY4OH0.GN4TawlXPholgREfmJlC7smLESkbvhFBovvGdzotMgs
 
 # player_id=11&app_id=1
 
@@ -37,4 +37,4 @@ POST http://localhost:3001/v1/app/player-register HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 x-naz-app-key: bsafwesfsdfsdfasfasfasfas
 
-mobile_number=720868921&app_player_id=123456
+mobile_number=720868921211&app_player_id=123456
