@@ -18,7 +18,7 @@ module.exports = {
         let customResult;
 
         try {
-            _app_id = await services.commonServices.getAppId(req.headers["x-loyalty-app-key"]);
+            _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
             _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
 
         } catch (error) {
@@ -119,7 +119,7 @@ module.exports = {
             let rewardBuyAmt;
 
             try {
-                _app_id = await services.commonServices.getAppId(req.headers["x-loyalty-app-key"]);
+                _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
                 _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
 
             } catch (error) {
@@ -222,7 +222,7 @@ module.exports = {
             let _reward_id = req.body.reward_id ? req.body.reward_id : null;
 
             try {
-                _app_id = await services.commonServices.getAppId(req.headers["x-loyalty-app-key"]);
+                _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
                 _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
 
             } catch (error) {
@@ -318,10 +318,10 @@ module.exports = {
                     }
 
                     if (remainingSeconds < 0 && remainingSeconds >= -5) {
-                        if (participants) {
+                       /*  if (participants) { */
                             let winner = await services.commonServices.declareWinner(rewardsData[i].reward_id)
                             rewardsData[i].winner = 'counting'
-                        } else {
+                        /* } else {
                             rewardsData[i].winner = null
                             services.commonServices.genrateRewards(rewardsData[i].reward_id).then(isGenerate => {
                                 if (isGenerate) {
@@ -333,7 +333,7 @@ module.exports = {
                                     let deactiveRewards = await pgConnection.executeQuery('loyalty', _updateQuery)
                                 }
                             })
-                        }
+                        } */
 
                     } else if (remainingSeconds < -5 && remainingSeconds >= -10) {
 
@@ -353,7 +353,7 @@ module.exports = {
 
                     } else if (remainingSeconds < -10) {
 
-                        services.commonServices.genrateRewards(rewardsData[i].reward_id).then(isGenerate => {
+                        services.commonServices.genrateRewards(rewardsData[i].reward_id).then(async (isGenerate) => {
                             if (isGenerate) {
                                 let _updateQuery = {
                                     text: "update tbl_reward set status='DEACTIVE' where reward_id= $1",
