@@ -14,4 +14,7 @@ checkReferralRoutes.post('/submitRefCode', checkReferralController.submitRefCode
 
 checkReferralRoutes.post('/claimEvent', checkReferralController.claimEvent);
 
+checkReferralRoutes.post('/claimEventList', checkReferralController.claimEventList);
+
+
 module.exports = checkReferralRoutes;
