@@ -3,6 +3,8 @@ const services = require('../../../service/service');
 const md5 = require('md5');
 const jwtToken = require('../../../auth/jwtToken');
 
+const checkReferralController = require('../../../controller/referral/checkReferralController');
+
 const customMsgType = "MASTER_MESSAGE";
 const customMsgTypeCM = "COMMON_MESSAGE";
 const customRegMsgType = "LOGIN_MESSAGE";
@@ -31,6 +33,8 @@ module.exports = {
             let _app_fb_id = req.body.app_fb_id ? req.body.app_fb_id : null;
             let _app_google_id = req.body.app_google_id ? req.body.app_google_id : null;
             let nz_access_token = null
+
+            let inviteCode = req.body.inviteCode ? req.body.inviteCode : null;
 
             try {
                 _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
@@ -90,6 +94,8 @@ module.exports = {
                                 customResponse.playerId = _player_id
 
                                 services.sendResponse.sendWithCode(req, res, customResponse, customRegMsgType, "USER_REGISTERED_SUCCESS");
+
+                                checkReferralController.onRegistration(_player_id, _app_id, inviteCode);
                             }
 
                         } else {
