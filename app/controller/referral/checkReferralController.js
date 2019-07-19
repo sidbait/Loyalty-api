@@ -56,29 +56,37 @@ module.exports = {
         console.log('========== Ref Done ==============');
     },
 
-    onDeposit: async function (req, res) {
-        let appId = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-        let playerId = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], appId);
+    claimEvent: async function (req, res) {
+        let rules = {
+            "goal_code": 'required',
+        };
+        console.log(req.body);
+        
+        let validation = new services.validator(req.body, rules);
 
-        console.log('playerId => ', playerId, 'appId => ', appId);
+        if (validation.passes()) {
 
-        if (playerId && appId) {
+            let _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
+            let _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
+            let _goal_code = req.body.goal_code ? req.body.goal_code : null;
 
-            let playerData = await refModel.getPlayerData(playerId, null, null);
+            console.log('_app_id', _app_id);
+            console.log('_player_id', _player_id);
+            console.log('_goal_code', _goal_code);
 
-            if (playerData && playerData.length > 0) {
+            if (_app_id && _player_id) {
 
-               
+                services.sendResponse.sendWithCode(req, res, {}, customMsgType, "GET_SUCCESS");
 
             } else {
-                console.log('no playerData');
+                services.sendResponse.sendWithCode(req, res, 'Invalid App Key or PlayerId', customMsgTypeCM, "VALIDATION_FAILED");
+
             }
 
         } else {
-            console.log('no appPlayerId && appId');
-        }
+            services.sendResponse.sendWithCode(req, res, validation.errors.errors, customMsgTypeCM, "VALIDATION_FAILED");
 
-        res.send('ok')
+        }
     },
 
     getInviteCode: async function (req, res) {
