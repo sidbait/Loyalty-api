@@ -61,7 +61,7 @@ module.exports = {
             "goal_code": 'required',
         };
         console.log(req.body);
-        
+
         let validation = new services.validator(req.body, rules);
 
         if (validation.passes()) {
@@ -148,11 +148,7 @@ module.exports = {
 
                         console.log('goals =>', goals);
 
-                        op = {
-                            referBy: referBy.playerId,
-                            goals: goals
-                        }
-                        services.sendResponse.sendWithCode(req, res, op, customMsgType, "GET_SUCCESS");
+                        services.sendResponse.sendWithCode(req, res, goals, customMsgType, "GET_SUCCESS");
                     } else {
                         op = {
                             err: 'same referBy.playerId and playerId'
@@ -174,5 +170,24 @@ module.exports = {
 
         }
 
-    }
+    },
+
+    claimEventList: async function (req, res) {
+
+        let _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
+        let _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
+
+        console.log('_app_id', _app_id);
+        console.log('_player_id', _player_id);
+
+        if (_app_id && _player_id) {
+
+            let op = await refModel.getGoals(_player_id, _app_id)
+            services.sendResponse.sendWithCode(req, res, op, customMsgType, "GET_SUCCESS");
+
+        } else {
+            services.sendResponse.sendWithCode(req, res, 'Invalid App Key or PlayerId', customMsgTypeCM, "VALIDATION_FAILED");
+
+        }
+    },
 }
