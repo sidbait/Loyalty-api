@@ -16,25 +16,48 @@ x-naz-app-key: 'bsafwesfsdfsdfasfasfasfas'
 player_id=12&app_id=1&refcode=jy5tpq85
 
 ###
-POST http://192.168.5.129:3001/v1/checkReferral/getInviteCode HTTP/1.1
+POST http://localhost:3001/v1/checkReferral/getInviteCode HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 x-naz-app-key: bsafwesfsdfsdfasfasfasfas
-access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjEyOTY0NDgsImRhdGEiOnsic3ViIjoiYXV0aGVudGljYXRpb24iLCJpc3MiOiJodHRwOi8vYmlncGVzYS5jb20iLCJwZXJtaXNzaW9ucyI6ImFsbCIsImlkZW50aXR5Ijp7InNvdXJjZSI6ImxveWFsdHktbnoiLCJwbGF5ZXJJZCI6IlNVQ0NFU1NfUkVHSVNURVJEIiwiYXBwSWQiOjIsImRhdGUiOiIyMDE5LTA3LTE5VDA0OjQ4OjA4LjM3OVoifX0sImlhdCI6MTU2MzUxMTY4OH0.GN4TawlXPholgREfmJlC7smLESkbvhFBovvGdzotMgs
+access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjEzMDIxMjEsImRhdGEiOnsic3ViIjoiYXV0aGVudGljYXRpb24iLCJpc3MiOiJodHRwOi8vYmlncGVzYS5jb20iLCJwZXJtaXNzaW9ucyI6ImFsbCIsImlkZW50aXR5Ijp7InNvdXJjZSI6ImxveWFsdHktbnoiLCJwbGF5ZXJJZCI6IlVTRVJfQUxSRUFEWV9SRUdJU1RFUkQiLCJhcHBJZCI6MiwiZGF0ZSI6IjIwMTktMDctMTlUMDY6MjI6NDEuMjE2WiJ9fSwiaWF0IjoxNTYzNTE3MzYxfQ.jPz96WeMCKV4CFtxfp2ow_9ttl2JqyvBi0hnS4pRH1c
 
 # player_id=11&app_id=1
 
 
 ###
-POST http://192.168.5.129:3001/v1/checkReferral/submitRefCode HTTP/1.1
+POST http://localhost:3001/v1/checkReferral/submitRefCode HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
-x-naz-app-key: 'bsafwesfsdfsdfasfasfasfas'
+x-naz-app-key: bsafwesfsdfsdfasfasfasfas
+access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjEyOTg5NDYsImRhdGEiOnsic3ViIjoiYXV0aGVudGljYXRpb24iLCJpc3MiOiJodHRwOi8vYmlncGVzYS5jb20iLCJwZXJtaXNzaW9ucyI6ImFsbCIsImlkZW50aXR5Ijp7InNvdXJjZSI6ImxveWFsdHktbnoiLCJwbGF5ZXJJZCI6IlVTRVJfQUxSRUFEWV9SRUdJU1RFUkQiLCJhcHBJZCI6MiwiZGF0ZSI6IjIwMTktMDctMTlUMDU6Mjk6NDYuNDgxWiJ9fSwiaWF0IjoxNTYzNTE0MTg2fQ.lB39snVZoZexbIP21PK3apGG526j6OsMOifBS3-eK5M
 
-player_id=10&app_id=1&refcode=jy5tpq85
+refcode=jy9og5p1
 
-###
+### 1st player
 
 POST http://localhost:3001/v1/app/player-register HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 x-naz-app-key: bsafwesfsdfsdfasfasfasfas
 
-mobile_number=720868921211&app_player_id=123456
+mobile_number=7208689212&app_player_id=123456789
+
+
+### 2nd player
+
+POST http://localhost:3001/v1/app/player-register HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+x-naz-app-key: bsafwesfsdfsdfasfasfasfas
+
+mobile_number=7208689212&app_player_id=123456789
+
+### 3nd player
+
+POST http://localhost:3001/v1/app/player-register HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+x-naz-app-key: bsafwesfsdfsdfasfasfasfas
+
+mobile_number=720868921200&inviteCode=34v02ivjy9q1j2d
+
+
+# checkReferralController.onRegistration(_player_app_id, _app_id, inviteCode)
+# let inviteCode = req.body.inviteCode ? req.body.inviteCode : null;
+# var checkReferralController = require('../../../controller/referral/checkReferralController');
