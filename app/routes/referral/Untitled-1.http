@@ -28,9 +28,9 @@ access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjEzMDIxMjEsImRhd
 POST http://localhost:3001/v1/checkReferral/submitRefCode HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 x-naz-app-key: bsafwesfsdfsdfasfasfasfas
-access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjEyOTg5NDYsImRhdGEiOnsic3ViIjoiYXV0aGVudGljYXRpb24iLCJpc3MiOiJodHRwOi8vYmlncGVzYS5jb20iLCJwZXJtaXNzaW9ucyI6ImFsbCIsImlkZW50aXR5Ijp7InNvdXJjZSI6ImxveWFsdHktbnoiLCJwbGF5ZXJJZCI6IlVTRVJfQUxSRUFEWV9SRUdJU1RFUkQiLCJhcHBJZCI6MiwiZGF0ZSI6IjIwMTktMDctMTlUMDU6Mjk6NDYuNDgxWiJ9fSwiaWF0IjoxNTYzNTE0MTg2fQ.lB39snVZoZexbIP21PK3apGG526j6OsMOifBS3-eK5M
+access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjEzMDQ3ODcsImRhdGEiOnsic3ViIjoiYXV0aGVudGljYXRpb24iLCJpc3MiOiJodHRwOi8vYmlncGVzYS5jb20iLCJwZXJtaXNzaW9ucyI6ImFsbCIsImlkZW50aXR5Ijp7InNvdXJjZSI6ImxveWFsdHktbnoiLCJwbGF5ZXJJZCI6IjI3IiwiYXBwSWQiOjIsImRhdGUiOiIyMDE5LTA3LTE5VDA3OjA3OjA3Ljk5OVoifX0sImlhdCI6MTU2MzUyMDAyOH0.RCGhuzqZFelj_hnbPCBvhnacWcG8Amn8kiz4d8j5Mw4
 
-refcode=jy9og5p1
+refcode=jy9nz7cx
 
 ### 1st player
 
@@ -55,9 +55,13 @@ POST http://localhost:3001/v1/app/player-register HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 x-naz-app-key: bsafwesfsdfsdfasfasfasfas
 
-mobile_number=720868921200&inviteCode=34v02ivjy9q1j2d
+mobile_number=720868921200100&inviteCode=34v02ivjy9q1j2d
 
 
 # checkReferralController.onRegistration(_player_app_id, _app_id, inviteCode)
 # let inviteCode = req.body.inviteCode ? req.body.inviteCode : null;
 # var checkReferralController = require('../../../controller/referral/checkReferralController');
+
+### 3nd player
+
+POST http://192.168.5.129:3001/v1/app/player-register HTTP/1.1

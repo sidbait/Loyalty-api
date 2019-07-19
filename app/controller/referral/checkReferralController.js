@@ -1,5 +1,3 @@
-const pgConnection = require('../../model/pgConnection');
-const mongodb = require('../../model/mongoConnectionPromise');
 const services = require('../../service/service');
 const refModel = require('../../model/checkReferralModel');
 
@@ -7,57 +5,6 @@ const customMsgType = "MASTER_MESSAGE";
 const customMsgTypeCM = "COMMON_MESSAGE";
 
 module.exports = {
-
-    onRegistrationUrl: async function (req, res) {
-        let playerId = req.query.playerId ? req.query.playerId : null;
-        let inviteCode = req.query.inviteCode ? req.query.inviteCode : null;
-
-        if (playerId) {
-
-            let playerData = await refModel.getPlayerData(playerId, null, null);
-
-            console.log('refcode => ', playerData[0].refcode);
-
-
-            if (playerData && playerData.length > 0) {
-
-                if (playerData[0].refcode == null) {
-
-                    let isSuccess = await refModel.genAndInsertRefCode(player_id);
-
-                    console.log('genAndInsertRefCode => ', isSuccess);
-
-                }
-
-                // get referByPlayer details from mongo using inviteCode
-                if (inviteCode) {
-
-                    let referBy = await refModel.getReferByPlayer(inviteCode, null);
-
-                    if (referBy) {
-                        console.log('referBy.player_id => ', referBy.player_id, 'referBy.app_id => ', referBy.app_id);
-
-                        let reward_amount = await refModel.checkGoal(player_id, referBy.player_id, referBy.app_id, 'REGISTRATION');
-
-                        console.log('reward_amount =>', reward_amount);
-                    } else {
-                        console.log('wrong inviteCode');
-                    }
-
-                } else {
-                    console.log('no inviteCode');
-                }
-
-            } else {
-                console.log('no playerData');
-            }
-
-        } else {
-            console.log('no player_id');
-        }
-
-        res.send('ok')
-    },
 
     onRegistration: async function (playerId, appId, inviteCode) {
 
@@ -84,7 +31,7 @@ module.exports = {
                     console.log('inviteCode => ', inviteCode);
 
                     let referBy = await refModel.getReferByPlayer(inviteCode, null, appId);
-                    
+
                     if (referBy && referBy.playerId && referBy.appId) {
                         console.log('referBy.playerId => ', referBy.playerId, 'referBy.appId => ', referBy.appId);
                         let goals = await refModel.checkGoal(playerId, referBy.playerId, referBy.appId);
@@ -110,8 +57,8 @@ module.exports = {
     },
 
     onDeposit: async function (req, res) {
-        let playerId = req.query.playerId ? req.query.playerId : null;
-        let appId = req.query.appId ? req.query.appId : null;
+        let appId = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
+        let playerId = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], appId);
 
         console.log('playerId => ', playerId, 'appId => ', appId);
 
@@ -121,14 +68,7 @@ module.exports = {
 
             if (playerData && playerData.length > 0) {
 
-                // get referByPlayer details from pg using inviteCode
-                if (playerData[0].player_id) {
-
-
-
-                } else {
-                    console.log('no player_id');
-                }
+               
 
             } else {
                 console.log('no playerData');

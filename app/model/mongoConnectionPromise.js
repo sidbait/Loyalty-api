@@ -11,7 +11,7 @@ module.exports = {
                     reject(err)
                 } else {
                     console.log('mongo doc inserted :D');
-                    
+
                     resolve(result)
                 }
             });
@@ -24,14 +24,10 @@ module.exports = {
         var collection = db.collection(collection);
         return new Promise(async (resolve, reject) => {
             if (lim == 0) {
-                console.log(jsonwhr);
-                
                 collection.find(jsonwhr).toArray(function (err, docs) {
                     if (err) {
                         reject(err)
                     } else {
-                        console.log(docs);
-                        
                         resolve(docs)
                     }
                 });

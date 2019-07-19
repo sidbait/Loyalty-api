@@ -136,6 +136,7 @@ module.exports = {
 
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
+
                 if (dbResult && dbResult.length > 0) {
                     // check active goals from ref_trans table
 
@@ -149,9 +150,11 @@ module.exports = {
 
 
                     if (dbResult && dbResult.length > 0) {
+                        
                         let _query = `select * from tbl_referrer_player_transaction where player_id =${player_id} and app_id =${appId}`;
 
                         let dbResult = await pgConnection.executeQuery('loyalty', _query);
+
 
                         if (dbResult && dbResult.length > 0) {
                             // check active goals from ref_trans table
@@ -172,6 +175,16 @@ module.exports = {
             // }
         });
 
+    },
+
+    getGoals: async (player_id, appId) => {
+        return new Promise(async (resolve, reject) => {
+            let _query = `select * from tbl_referrer_player_transaction where player_id =${player_id} and app_id =${appId}`;
+
+            let dbResult = await pgConnection.executeQuery('loyalty', _query);
+
+            resolve(dbResult);
+        });
     }
 
 }
