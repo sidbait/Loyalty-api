@@ -48,7 +48,7 @@ module.exports = {
                     values: [_mobile_number, _user_name, _email_id, _status, _source, _app_id, _device_id, _app_player_id, _fcm_id, nz_access_token, _app_fb_id, _app_google_id]
                 }
 
-                let response = {
+                let customResponse = {
                     accessToken: null,
                     playerId: null
                 }
@@ -61,11 +61,17 @@ module.exports = {
 
                         console.log(dbResult[0].p_out_player_id);
 
-                        if (dbResult[0].p_out_player_id) {
+                        let tempRes = dbResult[0].p_out_player_id.split('|')
+                        let _response = tempRes[0] ? tempRes[0].trim() : tempRes[0] 
 
-                            let tempRes = dbResult[0].p_out_player_id.split('|')
-                            let _player_id = tempRes[0]
-                            let _player_app_id = tempRes[1]
+                        console.log(_response == 'SUCCESS_REGISTERD');
+                        
+
+                        if (_response == 'SUCCESS_REGISTERD') {
+
+                           
+                            let _player_id = tempRes[1]
+                            let _player_app_id = tempRes[2]
 
                             let tokenParam = {
                                 playerId: _player_id,
@@ -80,14 +86,27 @@ module.exports = {
 
                             if (updateResult && updateResult.length > 0) {
 
-                                response.accessToken = nz_access_token
-                                response.playerId = _player_id
+                                customResponse.accessToken = nz_access_token
+                                customResponse.playerId = _player_id
 
-                                services.sendResponse.sendWithCode(req, res, response, customRegMsgType, "USER_REGISTERED_SUCCESS");
+                                services.sendResponse.sendWithCode(req, res, customResponse, customRegMsgType, "USER_REGISTERED_SUCCESS");
                             }
 
                         } else {
-                            services.sendResponse.sendWithCode(req, res, response, customRegMsgType, "USER_ALREADY_REGISTERD");
+
+                            let _tokenQuery = {
+                                text: "select nz_access_token  from tbl_player_app where player_id = $1 limit 1",
+                                values: [tempRes[1]]
+                            }
+            
+                            let tokenResult = await pgConnection.executeQuery('loyalty', _tokenQuery)
+
+                          console.log('tokenResult', tokenResult);
+                          
+                            customResponse.playerId = tempRes[1]
+                            customResponse.accessToken = tokenResult[0].nz_access_token
+                            console.log('USER_ALREADY_REGISTERD', customResponse);
+                            services.sendResponse.sendWithCode(req, res, customResponse, customRegMsgType, "USER_ALREADY_REGISTERD");
                         }
 
                     }
@@ -95,7 +114,7 @@ module.exports = {
 
                 catch (dbError) {
                     console.log(dbError);
-                    services.sendResponse.sendWithCode(req, res, response, "COMMON_MESSAGE", "DB_ERROR");
+                    services.sendResponse.sendWithCode(req, res, customResponse, "COMMON_MESSAGE", "DB_ERROR");
                 }
 
             } else {

@@ -230,6 +230,10 @@ module.exports = {
 
                     let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
+                    console.log('dbResult');
+                    console.log(dbResult);
+
+
                     if (dbResult && dbResult.length > 0 && dbResult[0].data) {
                         resolve(dbResult[0].data);
                     }
@@ -249,28 +253,64 @@ module.exports = {
     },
 
 
+    genrateRewards: (rewardId) => {
+        return new Promise(async (resolve, reject) => {
+
+            try {
+                let _genQuery = {
+                    text: "select * from fn_generate_rewards($1)",
+                    values: [rewardId]
+                }
+
+                let genResult = await pgConnection.executeQuery('loyalty', _genQuery)
+
+                if (genResult && genResult.length > 0 && genResult[0].p_out_reward_id) {
+
+                    resolve(true)
+                    /*   let _updateQuery = {
+                          text: "update tbl_reward set status='DEACTIVE' where reward_id= $1",
+                          values: [rewardsData[i].reward_id]
+                      }
+  
+                      let deactiveRewards = await pgConnection.executeQuery('loyalty', _updateQuery) */
+                } else {
+                    resolve(false)
+                }
+
+            } catch (error) {
+                reject(err)
+            }
+
+        })
+    },
+
+
     testFun: (rewardId) => {
 
         return new Promise(async function (resolve, reject) {
             try {
 
                 let _winQuery = {
-                    text: "select * from fn_get_winner_detais($1)",
-                    values: [rewardId]
+                    text: "select * from fn_get_player_details($1)",
+                    values: [12]
                 }
 
-                let winResult = await pgConnection.executeQuery('loyalty', _winQuery)
+                let q = 'select nz_access_token  from tbl_player_app where player_id = 12 limit 1'
+
+                let winResult = await pgConnection.executeQuery('loyalty', q)
 
                 console.log(winResult);
 
-                console.log(winResult[0].data);
+                resolve(winResult)
+
+                /*   console.log(winResult[0].p_out_reward_id); */
 
 
             } catch (err) {
                 console.error(err);
 
             }
-       
+
         });
     }
 

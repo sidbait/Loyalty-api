@@ -68,8 +68,9 @@ module.exports = {
                             console.log('endTime', endTime);
                             console.log('remainingSeconds', endTime, currentDate, remainingSeconds);
                             rewardsData[i].remaining_seconds = remainingSeconds
+                            rewardsData[i].winner = null
 
-                            for (let joinCount = 0; joinCount < joinData.length; joinCount++) {
+                            for (let joinCount = 0; joinCount && joinCount < joinData.length; joinCount++) {
                                 if (rewardsData[i].reward_id == joinData[joinCount].reward_id) {
                                     rewardsData[i].joins = joinData[joinCount].join
                                 }
@@ -77,9 +78,8 @@ module.exports = {
                         }
 
                         customResult = rewardsData
-
-
                         services.sendResponse.sendWithCode(req, res, customResult, customMsgType, "GET_SUCCESS");
+
                     } else {
                         services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "NO_DATA_FOUND");
                     }
@@ -89,6 +89,8 @@ module.exports = {
                 }
             }
             catch (error) {
+
+                console.log(error);
                 services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
             }
 
@@ -199,8 +201,12 @@ module.exports = {
     },
 
     getWinner: async (req, res) => {
+        console.log('getWinner');
         let _reward_id = req.body.reward_id ? parseInt(req.body.reward_id) : null;
-        services.commonServices.testFun(_reward_id)
+        let resonse = await services.commonServices.testFun(_reward_id)
+
+
+        res.send(resonse)
     },
 
     getPurchasedTickets: async (req, res) => {
@@ -305,21 +311,31 @@ module.exports = {
                     rewardsData[i].remaining_seconds = remainingSeconds
 
 
-                    for (let joinCount = 0; joinCount < joinData.length; joinCount++) {
+                    for (let joinCount = 0; joinCount && joinCount < joinData.length; joinCount++) {
                         if (rewardsData[i].reward_id == joinData[joinCount].reward_id) {
                             rewardsData[i].joins = joinData[joinCount].join
                         }
                     }
 
                     if (remainingSeconds < 0 && remainingSeconds >= -5) {
-                        let winner = await services.commonServices.declareWinner(rewardsData[i].reward_id)
-                        rewardsData[i].winner = 'counting'
+                       /*  if (participants) { */
+                            let winner = await services.commonServices.declareWinner(rewardsData[i].reward_id)
+                            rewardsData[i].winner = 'counting'
+                        /* } else {
+                            rewardsData[i].winner = null
+                            services.commonServices.genrateRewards(rewardsData[i].reward_id).then(isGenerate => {
+                                if (isGenerate) {
+                                    let _updateQuery = {
+                                        text: "update tbl_reward set status='DEACTIVE' where reward_id= $1",
+                                        values: [rewardsData[i].reward_id]
+                                    }
 
-                    } else {
-                        rewardsData[i].winner = null
-                    }
+                                    let deactiveRewards = await pgConnection.executeQuery('loyalty', _updateQuery)
+                                }
+                            })
+                        } */
 
-                    if (remainingSeconds < -5) {
+                    } else if (remainingSeconds < -5 && remainingSeconds >= -10) {
 
                         let _winQuery = {
                             text: "select * from fn_get_winner_detais($1)",
@@ -334,6 +350,20 @@ module.exports = {
                             let winner = await services.commonServices.declareWinner(rewardsData[i].reward_id)
                             rewardsData[i].winner = 'counting'
                         }
+
+                    } else if (remainingSeconds < -10) {
+
+                        services.commonServices.genrateRewards(rewardsData[i].reward_id).then(async (isGenerate) => {
+                            if (isGenerate) {
+                                let _updateQuery = {
+                                    text: "update tbl_reward set status='DEACTIVE' where reward_id= $1",
+                                    values: [rewardsData[i].reward_id]
+                                }
+
+                                let deactiveRewards = await pgConnection.executeQuery('loyalty', _updateQuery)
+                            }
+                        })
+
 
                     } else {
                         rewardsData[i].winner = null
