@@ -149,8 +149,27 @@ module.exports = {
 
         if (_app_id && _player_id) {
 
-            let op = await refModel.getGoals(_player_id, _app_id)
-            services.sendResponse.sendWithCode(req, res, op, customMsgType, "GET_SUCCESS");
+            let goal = await refModel.getGoals(_player_id, _app_id, null);
+
+            if (goal && goal.length > 0) {
+                if (goal[0].goal_achieved == 'false') {
+                    console.log('Goal need to achived');
+
+                    if (_goal_code == 'GAMEPLAY') {
+                        let x = checkGamePlay(goal[0])
+                    } else if (_goal_code == 'DEPOSIT') {
+
+                    } else {
+                        console.log('new goal code ', _goal_code);
+                    }
+
+                } else {
+                    console.log('no Goal to achived');
+                }
+                services.sendResponse.sendWithCode(req, res, goal, customMsgType, "GET_SUCCESS");
+            } else {
+                services.sendResponse.sendWithCode(req, res, { err: 'no goal found' }, customMsgType, "GET_FAILED");
+            }
 
         } else {
             services.sendResponse.sendWithCode(req, res, 'Invalid App Key or PlayerId', customMsgTypeCM, "VALIDATION_FAILED");
@@ -181,23 +200,25 @@ module.exports = {
                 let goal = await refModel.getGoals(_player_id, _app_id, _goal_code);
 
                 // console.log(goal.length > 0, goal[0].goal_achieved);
+                if (goal && goal.length > 0) {
+                    if (goal[0].goal_achieved == 'false') {
+                        console.log('Goal need to achived');
 
-                if (goal && goal.length > 0 && goal[0].goal_achieved == 'false') {
-                    console.log('Goal need to achived');
+                        if (_goal_code == 'GAMEPLAY') {
+                            let x = checkGamePlay(goal[0])
+                        } else if (_goal_code == 'DEPOSIT') {
 
-                    if (_goal_code == 'GAMEPLAY') {
-                        let x = checkGamePlay(goal[0])
-                    } else if (_goal_code == 'DEPOSIT') {
+                        } else {
+                            console.log('new goal code ', _goal_code);
+                        }
 
                     } else {
-                        console.log('new goal code ', _goal_code);
+                        console.log('no Goal to achived');
                     }
-
+                    services.sendResponse.sendWithCode(req, res, goal, customMsgType, "GET_SUCCESS");
                 } else {
-                    console.log('no Goal to achived');
+                    services.sendResponse.sendWithCode(req, res, { err: 'no goal found' }, customMsgType, "GET_FAILED");
                 }
-
-                services.sendResponse.sendWithCode(req, res, goal, customMsgType, "GET_SUCCESS");
 
             } else {
                 services.sendResponse.sendWithCode(req, res, 'Invalid App Key or PlayerId', customMsgTypeCM, "VALIDATION_FAILED");
@@ -223,5 +244,5 @@ function checkGamePlay(myGoal) {
     let goal_achieved_to = myGoal.goal_achieved_to;
     let expiry_date = myGoal.expiry_date;
 
-    
+
 }
