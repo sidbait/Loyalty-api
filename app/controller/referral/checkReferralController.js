@@ -180,7 +180,7 @@ module.exports = {
 
                 let goal = await refModel.getGoals(_player_id, _app_id, _goal_code);
 
-                console.log(goal.length > 0, goal[0].goal_achieved);
+                // console.log(goal.length > 0, goal[0].goal_achieved);
 
                 if (goal && goal.length > 0 && goal[0].goal_achieved == 'false') {
                     console.log('Goal need to achived');
