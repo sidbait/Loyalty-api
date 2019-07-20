@@ -76,7 +76,7 @@ app.use(function (req, res, next) {
 //     }
 // )
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'))
-app.use('/v1', router);
+app.use('/v1/ngs', router);
 
 //Setting max listeners to infinite.
 process.setMaxListeners(0);
