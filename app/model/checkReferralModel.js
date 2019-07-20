@@ -187,6 +187,21 @@ module.exports = {
 
             resolve(dbResult);
         });
+    },
+
+    getMobile: async (player_id) => {
+        return new Promise(async (resolve, reject) => {
+            let _query = `select mobile_number from tbl_player_master where player_id = ${player_id}`;
+
+            try {
+                let dbResult = await pgConnection.executeQuery('loyalty', _query);
+
+                resolve(dbResult[0].mobile_number);
+            } catch (error) {
+                reject(error)
+            }
+        });
     }
+
 
 }

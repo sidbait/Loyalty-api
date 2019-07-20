@@ -4,6 +4,8 @@ const refModel = require('../../model/checkReferralModel');
 const customMsgType = "MASTER_MESSAGE";
 const customMsgTypeCM = "COMMON_MESSAGE";
 
+var rp = require('request-promise');
+
 module.exports = {
 
     onRegistration: async function (playerId, appId, inviteCode) {
@@ -193,7 +195,7 @@ module.exports = {
                         if (_goal_code == 'GAMEPLAY') {
                             let x = checkGamePlay(goal[0])
                         } else if (_goal_code == 'DEPOSIT') {
-
+                            let x = checkDeposit(goal[0])
                         } else {
                             console.log('new goal code ', _goal_code);
                         }
@@ -219,16 +221,104 @@ module.exports = {
 }
 
 
-function checkGamePlay(myGoal) {
+async function checkGamePlay(myGoal) {
     let player_id = myGoal.player_id;
     let app_id = myGoal.app_id;
     let referred_by = myGoal.referred_by;
-    let goal_code = myGoal.goal_code;
-    let goal_achieved = myGoal.goal_achieved;
+
     let reward_amount = myGoal.reward_amount;
     let goal_achieved_from = myGoal.goal_achieved_from;
     let goal_achieved_to = myGoal.goal_achieved_to;
     let expiry_date = myGoal.expiry_date;
 
+    try {
+
+        let player_mobile = await refModel.getMobile(player_id);
+        let referBy_mobile = await refModel.getMobile(referred_by);
+
+        let url = 'http://localhost:3003/v1/claimEvent/gameplay';
+
+        let body =
+        {
+            player_mobile: player_mobile,
+            count: goal_achieved_to,
+            reward_amount: reward_amount,
+            referBy_mobile: referBy_mobile
+        }
+
+
+        let x = await rmgCall(url, body)
+        console.log(x);
+
+    } catch (error) {
+        console.log(error);
+
+    }
+
+}
+
+async function checkDeposit(myGoal) {
+
+    let player_id = myGoal.player_id;
+    let app_id = myGoal.app_id;
+    let referred_by = myGoal.referred_by;
+
+    let reward_amount = myGoal.reward_amount;
+    let goal_achieved_from = myGoal.goal_achieved_from;
+    let goal_achieved_to = myGoal.goal_achieved_to;
+    let expiry_date = myGoal.expiry_date;
+
+    try {
+
+        let player_mobile = await refModel.getMobile(player_id);
+        let referBy_mobile = await refModel.getMobile(referred_by);
+
+        let url = 'http://localhost:3003/v1/claimEvent/deposit';
+
+        let body =
+        {
+            player_mobile: player_mobile,
+            count: goal_achieved_to,
+            reward_amount: reward_amount,
+            referBy_mobile: referBy_mobile
+        }
+
+
+        let x = await rmgCall(url, body)
+        console.log(x);
+
+    } catch (error) {
+        console.log(error);
+
+    }
+
+}
+
+function rmgCall(url, body) {
+
+    var options = {
+        method: 'POST',
+        url: url,
+        headers:
+        {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        form: body
+    };
+
+    return new Promise(async function (resolve, reject) {
+        rp(options)
+            .then(function (parsedBody) {
+                // POST succeeded...
+                console.log('POST succeeded...');
+                resolve(parsedBody)
+
+            })
+            .catch(function (err) {
+                // POST failed...
+                console.log('POST failed...');
+                reject(err)
+            });
+    });
 
 }
