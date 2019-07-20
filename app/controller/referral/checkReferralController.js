@@ -152,20 +152,6 @@ module.exports = {
             let goal = await refModel.getGoals(_player_id, _app_id, null);
 
             if (goal && goal.length > 0) {
-                if (goal[0].goal_achieved == 'false') {
-                    console.log('Goal need to achived');
-
-                    if (_goal_code == 'GAMEPLAY') {
-                        let x = checkGamePlay(goal[0])
-                    } else if (_goal_code == 'DEPOSIT') {
-
-                    } else {
-                        console.log('new goal code ', _goal_code);
-                    }
-
-                } else {
-                    console.log('no Goal to achived');
-                }
                 services.sendResponse.sendWithCode(req, res, goal, customMsgType, "GET_SUCCESS");
             } else {
                 services.sendResponse.sendWithCode(req, res, { err: 'no goal found' }, customMsgType, "GET_FAILED");
