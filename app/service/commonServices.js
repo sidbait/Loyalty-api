@@ -215,13 +215,16 @@ module.exports = {
 
 
                 let winCountQuery = {
-                    text: `SELECT count(1) FROM tbl_reward_winners where reward_id = $1`,
+                    text: `SELECT count(*) FROM tbl_reward_winners where reward_id = $1`,
                     values: [rewardId]
                 }
 
                 let winCount = await pgConnection.executeQuery('loyalty', winCountQuery);
+                winCount = parseInt(winCount[0].count)
 
-                if (parseInt(winCount) == 0) {
+                console.log('winCount' , winCount , winCount == 0);
+                
+                if (winCount == 0) {
 
                     let _query = {
                         text: `SELECT * FROM fn_get_reward_winner($1)`,
@@ -230,7 +233,7 @@ module.exports = {
 
                     let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
-                    console.log('dbResult');
+                    console.log('Reward Winner dbResult');
                     console.log(dbResult);
 
 
@@ -278,7 +281,31 @@ module.exports = {
                 }
 
             } catch (error) {
-                reject(err)
+                reject(error)
+            }
+
+        })
+    },
+
+
+    participantsCount: (rewardId) => {
+        return new Promise(async (resolve, reject) => {
+
+            try {
+                let _participantQuery = {
+                    text: "select count(*) from tbl_reward_participants where reward_id = $1",
+                    values: [rewardId]
+                }
+                let _participantsCount = await pgConnection.executeQuery('loyalty', _participantQuery)
+
+                if (_participantsCount && _participantsCount.length > 0) {
+                    resolve(_participantsCount[0].count)
+                } else {
+                    resolve(0)
+                }
+
+            } catch (error) {
+                reject(error)
             }
 
         })
@@ -290,18 +317,25 @@ module.exports = {
         return new Promise(async function (resolve, reject) {
             try {
 
-                let _winQuery = {
+             /*    let _winQuery = {
                     text: "select * from fn_get_player_details($1)",
                     values: [12]
                 }
 
-                let q = 'select nz_access_token  from tbl_player_app where player_id = 12 limit 1'
+                let q = 'select nz_access_token  from tbl_player_app where player_id = 12 limit 1' */
 
-                let winResult = await pgConnection.executeQuery('loyalty', q)
+                let _winQuery = {
+                    text: "select * from fn_get_winner_detais($1)",
+                    values: [rewardId]
+                }
+
+                let winResult = await pgConnection.executeQuery('loyalty', _winQuery)
+
+               // let winResult = await pgConnection.executeQuery('loyalty', q)
 
                 console.log(winResult);
 
-                resolve(winResult)
+                resolve(winResult[0].data[0])
 
                 /*   console.log(winResult[0].p_out_reward_id); */
 
