@@ -181,7 +181,7 @@ module.exports = {
         return new Promise(async (resolve, reject) => {
             let _query = `select * from tbl_referrer_player_transaction where player_id =${player_id} and app_id =${appId}`;
             if (goalCode) {
-                _query += `and goal_code = '${goalCode}'`;
+                _query += ` and goal_code = '${goalCode}'`;
             }
             let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
@@ -201,7 +201,35 @@ module.exports = {
                 reject(error)
             }
         });
-    }
+    },
+
+    amountEarned: async (player_id) => {
+        return new Promise(async (resolve, reject) => {
+            let _query = `select coalesce(sum(reward_amount),0) as sum from tbl_referrer_player_transaction where referred_by = ${player_id} and is_goal_achieved = true`;
+
+            try {
+                let dbResult = await pgConnection.executeQuery('loyalty', _query);
+
+                resolve(dbResult[0].sum);
+            } catch (error) {
+                reject(error)
+            }
+        });
+    },
+
+    getReferralDetail: async (player_id) => {
+        return new Promise(async (resolve, reject) => {
+            let _query = `select * from tbl_referrer_player_transaction where referred_by = ${player_id}`;
+
+            try {
+                let dbResult = await pgConnection.executeQuery('loyalty', _query);
+
+                resolve(dbResult);
+            } catch (error) {
+                reject(error)
+            }
+        });
+    },
 
 
 }
