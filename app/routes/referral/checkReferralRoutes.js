@@ -16,5 +16,8 @@ checkReferralRoutes.post('/claimEvent', checkReferralController.claimEvent);
 
 checkReferralRoutes.post('/claimEventList', checkReferralController.claimEventList);
 
+checkReferralRoutes.post('/amountEarned', checkReferralController.amountEarned);
+
+checkReferralRoutes.post('/getReferralDetail', checkReferralController.getReferralDetail);
 
 module.exports = checkReferralRoutes;
