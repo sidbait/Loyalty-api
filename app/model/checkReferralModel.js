@@ -219,7 +219,8 @@ module.exports = {
 
     getReferralDetail: async (player_id) => {
         return new Promise(async (resolve, reject) => {
-            let _query = `select * from tbl_referrer_player_transaction where referred_by = ${player_id}`;
+            let _query = `select tbl_referrer_player_transaction.*,tbl_player_app.app_user_name from tbl_referrer_player_transaction
+            inner join tbl_player_app on tbl_referrer_player_transaction.player_id = tbl_player_app.player_id where referred_by = ${player_id}`;
 
             try {
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
