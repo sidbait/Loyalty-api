@@ -46,7 +46,7 @@ module.exports = {
                         let joinData;
 
                         rewardsData = dbResult[0].data
-                        console.log('rewardsData ==', rewardsData);
+                        // console.log('rewardsData ==', rewardsData);
                         joinData = dbResult[1].data
                         console.log('joinData ==', joinData);
 
@@ -56,7 +56,7 @@ module.exports = {
                         for (let i = 0; i < rewardsDataLength; i++) {
 
                             let startTime = new Date(rewardsData[i].from_date)
-                            console.log('startTime', startTime);
+                            //console.log('startTime', startTime);
                             let repeatMin = rewardsData[i].repeat_min
 
                             let endTime = new Date(startTime.getTime() + repeatMin * 60000);
@@ -65,8 +65,8 @@ module.exports = {
                             currentDate.setMinutes(currentDate.getMinutes() + 30);
                             let remainingSeconds = services.commonServices.getTimeDiif(endTime, currentDate)
 
-                            console.log('endTime', endTime);
-                            console.log('remainingSeconds', endTime, currentDate, remainingSeconds);
+                            //  console.log('endTime', endTime);
+                            //  console.log('remainingSeconds', endTime, currentDate, remainingSeconds);
                             rewardsData[i].remaining_seconds = remainingSeconds
                             rewardsData[i].winner = null
 
@@ -265,7 +265,7 @@ module.exports = {
     },
 
     getAllSocket: async (_app_id, callback) => {
-        let _player_id;
+        let _player_id
         let customResult;
 
 
@@ -278,7 +278,7 @@ module.exports = {
 
         if (dbResult && dbResult.length > 0) {
 
-            console.log('ALL ==', dbResult[0]);
+            //  console.log('ALL ==', dbResult[0]);
 
             if (dbResult[0].data && dbResult[0].data.length > 0) {
 
@@ -286,9 +286,9 @@ module.exports = {
                 let joinData;
 
                 rewardsData = dbResult[0].data
-                console.log('rewardsData ==', rewardsData);
+                //   console.log('rewardsData ==', rewardsData);
                 joinData = dbResult[1].data
-                console.log('joinData ==', joinData);
+                //  console.log('joinData ==', joinData);
 
 
                 let rewardsDataLength = rewardsData.length
@@ -296,7 +296,7 @@ module.exports = {
                 for (let i = 0; i < rewardsDataLength; i++) {
 
                     let startTime = new Date(rewardsData[i].from_date)
-                    console.log('startTime', startTime);
+                    //    console.log('startTime', startTime);
                     let repeatMin = rewardsData[i].repeat_min
 
                     let endTime = new Date(startTime.getTime() + repeatMin * 60000);
@@ -305,25 +305,45 @@ module.exports = {
                     currentDate.setMinutes(currentDate.getMinutes() + 30);
                     let remainingSeconds = services.commonServices.getTimeDiif(endTime, currentDate)
 
-                    console.log('endTime', endTime);
-                    console.log('remainingSeconds', endTime, currentDate, remainingSeconds);
+                    //      console.log('endTime', endTime);
+                    //    console.log('remainingSeconds', endTime, currentDate, remainingSeconds);
 
                     rewardsData[i].remaining_seconds = remainingSeconds
 
+                    if (joinData) {
+                        for (let joinCount = 0; joinCount < joinData.length; joinCount++) {
 
-                    for (let joinCount = 0; joinCount && joinCount < joinData.length; joinCount++) {
-                        if (rewardsData[i].reward_id == joinData[joinCount].reward_id) {
-                            rewardsData[i].joins = joinData[joinCount].join
+
+
+                            if (rewardsData[i].reward_id == joinData[joinCount].reward_id) {
+                                //          console.log(rewardsData[i].reward_id,joinData[joinCount].join );
+                                rewardsData[i].joins = joinData[joinCount].join
+                                break;
+                            } else {
+                                rewardsData[i].joins = 0
+                            }
                         }
+                    } else {
+                        rewardsData[i].joins = 0
                     }
-
+                    /*    console.log('For ===', [i]);
+                       console.log(rewardsData[i]);
+                       console.log('end ===', [i]);
+    */
                     if (remainingSeconds < 0 && remainingSeconds >= -5) {
-                       /*  if (participants) { */
+
+                        let _participantsCount = await services.commonServices.participantsCount(rewardsData[i].reward_id)
+
+                        console.log("3###_participantsCount : ", _participantsCount, typeof _participantsCount);
+
+                        if (parseInt(_participantsCount) > 0) {
                             let winner = await services.commonServices.declareWinner(rewardsData[i].reward_id)
+                            console.log('winner declare', winner);
+
                             rewardsData[i].winner = 'counting'
-                        /* } else {
+                        } else {
                             rewardsData[i].winner = null
-                            services.commonServices.genrateRewards(rewardsData[i].reward_id).then(isGenerate => {
+                            services.commonServices.genrateRewards(rewardsData[i].reward_id).then(async isGenerate => {
                                 if (isGenerate) {
                                     let _updateQuery = {
                                         text: "update tbl_reward set status='DEACTIVE' where reward_id= $1",
@@ -333,7 +353,7 @@ module.exports = {
                                     let deactiveRewards = await pgConnection.executeQuery('loyalty', _updateQuery)
                                 }
                             })
-                        } */
+                        }
 
                     } else if (remainingSeconds < -5 && remainingSeconds >= -10) {
 
@@ -345,13 +365,13 @@ module.exports = {
                         let winResult = await pgConnection.executeQuery('loyalty', _winQuery)
 
                         if (winResult && winResult.length > 0 && winResult[0].data) {
-                            rewardsData[i].winner = winResult[0].data
+                            rewardsData[i].winner = winResult[0].data[0]
                         } else {
                             let winner = await services.commonServices.declareWinner(rewardsData[i].reward_id)
                             rewardsData[i].winner = 'counting'
                         }
 
-                    } else if (remainingSeconds < -10) {
+                    } else if (remainingSeconds < -15) {
 
                         services.commonServices.genrateRewards(rewardsData[i].reward_id).then(async (isGenerate) => {
                             if (isGenerate) {
@@ -359,16 +379,16 @@ module.exports = {
                                     text: "update tbl_reward set status='DEACTIVE' where reward_id= $1",
                                     values: [rewardsData[i].reward_id]
                                 }
-
                                 let deactiveRewards = await pgConnection.executeQuery('loyalty', _updateQuery)
                             }
                         })
 
+                     /*    dbResult[0].data.splice(i, 1);
+                        i--; */
 
                     } else {
                         rewardsData[i].winner = null
                     }
-
                 }
                 callback(rewardsData);
             } else {
