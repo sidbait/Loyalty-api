@@ -36,7 +36,12 @@ module.exports = {
 
                     if (referBy && referBy.playerId && referBy.appId) {
                         console.log('referBy.playerId => ', referBy.playerId, 'referBy.appId => ', referBy.appId);
+
                         let goals = await refModel.checkGoal(playerId, referBy.playerId, referBy.appId);
+
+                        if (goals && goals.length > 0) {
+                            checkRegistration(goals);
+                        }
 
                         console.log('goals =>', goals);
                     } else {
@@ -257,7 +262,7 @@ module.exports = {
 
             let total_amount_earned_by_referral = await refModel.amountEarned(_player_id, _app_id, null);
             let referralDetail = await refModel.getReferralDetail(_player_id, _app_id, null);
-            
+
             services.sendResponse.sendWithCode(req, res, { total_amount_earned_by_referral, referralDetail }, customMsgType, "GET_SUCCESS");
 
         } else {
@@ -267,6 +272,43 @@ module.exports = {
     },
 }
 
+
+async function checkRegistration(myGoal) {
+
+    myGoal.map(async element => {
+        if (element.goal_code == 'REGISTRATION' && element.is_goal_achieved == false) {
+            console.log(`send reward_amount ${element.reward_amount} to referred_by ${element.referred_by}`);
+            try {
+
+                let player_mobile = await refModel.getMobile(element.player_id);
+                let referBy_mobile = await refModel.getMobile(element.referred_by);
+
+                let url = 'http://localhost:3003/v1/claimEvent/registration';
+
+                let body =
+                {
+                    player_mobile: player_mobile,
+                    reward_amount: element.reward_amount,
+                    referBy_mobile: referBy_mobile
+                }
+
+
+                let d = await rmgCall(url, body)
+                console.log(JSON.parse(d));
+                let x = JSON.parse(d);
+                if (x.data && x.data.isCredited == true) {
+                    // update in ref trns tbl
+                    let isCredited = await refModel.updateReferrerPlayerTransaction(element.player_id, 'REGISTRATION')
+                    console.log('isCredited ==>', isCredited);
+                }
+
+
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    })
+}
 
 async function checkGamePlay(myGoal) {
     let player_id = myGoal.player_id;
@@ -294,9 +336,14 @@ async function checkGamePlay(myGoal) {
             }
 
 
-            let x = await rmgCall(url, body)
-            console.log(x);
-            resolve(x)
+            let d = await rmgCall(url, body)
+            console.log(JSON.parse(d));
+            let x = JSON.parse(d);
+            if (x.data && x.data.isCredited == true) {
+                // update in ref trns tbl
+                let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'GAMEPLAY')
+                console.log('isCredited ==>', isCredited);
+            }
 
         } catch (error) {
             console.log(error);
@@ -317,6 +364,8 @@ async function checkDeposit(myGoal) {
     let goal_achieved_from = myGoal.goal_achieved_from;
     let goal_achieved_to = myGoal.goal_achieved_to;
     let expiry_date = myGoal.expiry_date;
+    let minimumAmount = myGoal.minimum_amount;
+
     return new Promise(async function (resolve, reject) {
         try {
 
@@ -330,13 +379,18 @@ async function checkDeposit(myGoal) {
                 player_mobile: player_mobile,
                 count: goal_achieved_to,
                 reward_amount: reward_amount,
-                referBy_mobile: referBy_mobile
+                referBy_mobile: referBy_mobile,
+                minimumAmount: minimumAmount
             }
 
-
-            let x = await rmgCall(url, body)
-            console.log(x);
-            resolve(x)
+            let d = await rmgCall(url, body)
+            console.log(JSON.parse(d));
+            let x = JSON.parse(d);
+            if (x.data && x.data.isCredited == true) {
+                // update in ref trns tbl
+                let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'DEPOSIT')
+                console.log('isCredited ==>', isCredited);
+            }
 
         } catch (error) {
             console.log(error);
