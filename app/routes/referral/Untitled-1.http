@@ -16,7 +16,7 @@ x-naz-app-key: 'bsafwesfsdfsdfasfasfasfas'
 player_id=12&app_id=1&refcode=jy5tpq85
 
 ###
-POST http://192.168.5.129:3001/v1/checkReferral/getInviteCode HTTP/1.1
+POST http://localhost:3001/v1/ngs/checkReferral/getInviteCode HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 x-naz-app-key: bsafwesfsdfsdfasfasfasfas
 access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjEzMDU1NDIsImRhdGEiOnsic3ViIjoiYXV0aGVudGljYXRpb24iLCJpc3MiOiJodHRwOi8vYmlncGVzYS5jb20iLCJwZXJtaXNzaW9ucyI6ImFsbCIsImlkZW50aXR5Ijp7InNvdXJjZSI6ImxveWFsdHktbnoiLCJwbGF5ZXJJZCI6IjI5IiwiYXBwSWQiOjIsImRhdGUiOiIyMDE5LTA3LTE5VDA3OjE5OjQyLjQ3MVoifX0sImlhdCI6MTU2MzUyMDc4Mn0.sOrZ27DaWJk8eyW2TR-aChctCnT94OJQudCqBoW3ue4
@@ -43,7 +43,7 @@ mobile_number=7208689212&app_player_id=123456789
 
 ### 2nd player
 
-POST http://192.168.5.129:3001/v1/app/player-register HTTP/1.1
+POST http://localhost:3001/v1/ngs/app/player-register HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 x-naz-app-key: bsafwesfsdfsdfasfasfasfas
 
@@ -51,11 +51,11 @@ mobile_number=7208689212&app_player_id=123456789
 
 ### 3nd player
 
-POST http://stg-api.bigpesa.in/v1/ngs/app/player-register HTTP/1.1
+POST http://localhost:3001/v1/ngs/app/player-register HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 x-naz-app-key: bsafwesfsdfsdfasfasfasfas
 
-mobile_number=720868921200100&inviteCode=34v02ivjy9q1j2d
+mobile_number=720868921200101&inviteCode=34v03m5jyfcc0n4
 
 
 # checkReferralController.onRegistration(_player_app_id, _app_id, inviteCode)
@@ -71,5 +71,10 @@ access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjEzMDU1NDIsImRhd
 
 goal_code=GAMEPLAY
 
-###
-POST http://localhost:3001/v1/inner/innerpage HTTP/1.1
+### 3nd player
+
+POST http://localhost:3003/v1/claimEvent/registration HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+x-naz-app-key: bsafwesfsdfsdfasfasfasfas
+
+player_mobile=720868921200107&reward_amount=1&referBy_mobile=7208689212
