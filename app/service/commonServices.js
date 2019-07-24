@@ -140,7 +140,7 @@ module.exports = {
 
                         let _query = {
                             text: "SELECT * from fn_wallet_transaction($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
-                            values: [app_id, player_id, event_id, event_code, event_name, np_balance, _order_id, txn_type, txn_status, txn_mode, reward_id]
+                            values: [app_id, player_id, event_id, event_code, event_name, txn_amt, _order_id, txn_type, txn_status, txn_mode, reward_id]
                         }
 
                         let dbResult = await pgConnection.executeQuery('loyalty', _query)
@@ -323,26 +323,33 @@ module.exports = {
                 }
 
                 let q = 'select nz_access_token  from tbl_player_app where player_id = 12 limit 1' */
-
+/* 
                 let _winQuery = {
                     text: "select * from fn_get_winner_detais($1)",
                     values: [rewardId]
                 }
 
                 let winResult = await pgConnection.executeQuery('loyalty', _winQuery)
+ */
+                let _updateQuery = {
+                    text: "update tbl_reward set statuss='DEACTIVE' where reward_id= $1",
+                    values: [rewardId]
+                }
+                let deactiveRewards = await pgConnection.executeQuery('loyalty', _updateQuery)
+
 
                // let winResult = await pgConnection.executeQuery('loyalty', q)
 
-                console.log(winResult);
+                console.log(deactiveRewards);
 
-                resolve(winResult[0].data[0])
+                resolve(deactiveRewards)
 
                 /*   console.log(winResult[0].p_out_reward_id); */
 
 
             } catch (err) {
                 console.error(err);
-
+                reject(err)
             }
 
         });

@@ -62,14 +62,14 @@ module.exports = {
                         console.log(dbResult[0].p_out_player_id);
 
                         let tempRes = dbResult[0].p_out_player_id.split('|')
-                        let _response = tempRes[0] ? tempRes[0].trim() : tempRes[0] 
+                        let _response = tempRes[0] ? tempRes[0].trim() : tempRes[0]
 
                         console.log(_response == 'SUCCESS_REGISTERD');
-                        
+
 
                         if (_response == 'SUCCESS_REGISTERD') {
 
-                           
+
                             let _player_id = tempRes[1]
                             let _player_app_id = tempRes[2]
 
@@ -95,14 +95,14 @@ module.exports = {
                         } else {
 
                             let _tokenQuery = {
-                                text: "select nz_access_token  from tbl_player_app where player_id = $1 limit 1",
+                                text: "select nz_access_token from tbl_player_app where player_id = $1 limit 1",
                                 values: [tempRes[1]]
                             }
-            
+
                             let tokenResult = await pgConnection.executeQuery('loyalty', _tokenQuery)
 
-                          console.log('tokenResult', tokenResult);
-                          
+                            console.log('tokenResult', tokenResult);
+
                             customResponse.playerId = tempRes[1]
                             customResponse.accessToken = tokenResult[0].nz_access_token
                             console.log('USER_ALREADY_REGISTERD', customResponse);

@@ -70,10 +70,17 @@ module.exports = {
                             rewardsData[i].remaining_seconds = remainingSeconds
                             rewardsData[i].winner = null
 
-                            for (let joinCount = 0; joinCount && joinCount < joinData.length; joinCount++) {
-                                if (rewardsData[i].reward_id == joinData[joinCount].reward_id) {
-                                    rewardsData[i].joins = joinData[joinCount].join
+                            if (joinData) {
+                                for (let joinCount = 0; joinCount < joinData.length; joinCount++) {
+                                    if (rewardsData[i].reward_id == joinData[joinCount].reward_id) {
+                                        rewardsData[i].joins = joinData[joinCount].join
+                                        break;
+                                    } else {
+                                        rewardsData[i].joins = 0
+                                    }
                                 }
+                            } else {
+                                rewardsData[i].joins = 0
                             }
                         }
 
@@ -203,10 +210,14 @@ module.exports = {
     getWinner: async (req, res) => {
         console.log('getWinner');
         let _reward_id = req.body.reward_id ? parseInt(req.body.reward_id) : null;
-        let resonse = await services.commonServices.testFun(_reward_id)
+        //  let resonse = await services.commonServices.testFun(_reward_id)
 
+        services.commonServices.testFun(_reward_id).then(data => {
+            res.send(resonse)
+        }).catch(err => {
+            res.send(err)
+        })
 
-        res.send(resonse)
     },
 
     getPurchasedTickets: async (req, res) => {
@@ -312,11 +323,7 @@ module.exports = {
 
                     if (joinData) {
                         for (let joinCount = 0; joinCount < joinData.length; joinCount++) {
-
-
-
                             if (rewardsData[i].reward_id == joinData[joinCount].reward_id) {
-                                //          console.log(rewardsData[i].reward_id,joinData[joinCount].join );
                                 rewardsData[i].joins = joinData[joinCount].join
                                 break;
                             } else {
@@ -326,10 +333,7 @@ module.exports = {
                     } else {
                         rewardsData[i].joins = 0
                     }
-                    /*    console.log('For ===', [i]);
-                       console.log(rewardsData[i]);
-                       console.log('end ===', [i]);
-    */
+
                     if (remainingSeconds < 0 && remainingSeconds >= -5) {
 
                         let _participantsCount = await services.commonServices.participantsCount(rewardsData[i].reward_id)
@@ -343,7 +347,19 @@ module.exports = {
                             rewardsData[i].winner = 'counting'
                         } else {
                             rewardsData[i].winner = null
-                            services.commonServices.genrateRewards(rewardsData[i].reward_id).then(async isGenerate => {
+
+                            let _updateQuery = {
+                                text: "update tbl_reward set status='DEACTIVE' where reward_id= $1",
+                                values: [rewardsData[i].reward_id]
+                            }
+                            pgConnection.executeQuery('loyalty', _updateQuery).then(
+                                data => {
+                                    let isGenerate = services.commonServices.genrateRewards(rewardsData[i].reward_id)
+                                }).catch(err =>{
+                                    
+                                })
+
+                            /* services.commonServices.genrateRewards(rewardsData[i].reward_id).then(async isGenerate => {
                                 if (isGenerate) {
                                     let _updateQuery = {
                                         text: "update tbl_reward set status='DEACTIVE' where reward_id= $1",
@@ -352,7 +368,7 @@ module.exports = {
 
                                     let deactiveRewards = await pgConnection.executeQuery('loyalty', _updateQuery)
                                 }
-                            })
+                            }) */
                         }
 
                     } else if (remainingSeconds < -5 && remainingSeconds >= -10) {
@@ -371,20 +387,21 @@ module.exports = {
                             rewardsData[i].winner = 'counting'
                         }
 
-                    } else if (remainingSeconds < -15) {
+                    } else if (remainingSeconds < -20) {
 
-                        services.commonServices.genrateRewards(rewardsData[i].reward_id).then(async (isGenerate) => {
-                            if (isGenerate) {
-                                let _updateQuery = {
-                                    text: "update tbl_reward set status='DEACTIVE' where reward_id= $1",
-                                    values: [rewardsData[i].reward_id]
-                                }
-                                let deactiveRewards = await pgConnection.executeQuery('loyalty', _updateQuery)
-                            }
-                        })
+                        let _updateQuery = {
+                            text: "update tbl_reward set status='DEACTIVE' where reward_id= $1",
+                            values: [rewardsData[i].reward_id]
+                        }
+                        pgConnection.executeQuery('loyalty', _updateQuery).then(
+                            data => {
+                                let isGenerate = services.commonServices.genrateRewards(rewardsData[i].reward_id)
+                            }).catch(err =>{
+                                
+                            })
 
-                     /*    dbResult[0].data.splice(i, 1);
-                        i--; */
+                        /*  rewardsData.splice(i, 1);
+                         i--; */
 
                     } else {
                         rewardsData[i].winner = null
