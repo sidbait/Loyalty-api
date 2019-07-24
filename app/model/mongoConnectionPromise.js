@@ -11,7 +11,7 @@ module.exports = {
                     reject(err)
                 } else {
                     console.log('mongo doc inserted :D');
-                    
+
                     resolve(result)
                 }
             });
