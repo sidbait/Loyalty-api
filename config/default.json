@@ -12,25 +12,18 @@
   "db_connectionString": {
     "pg": {
       "pg_loyalty": {
-        "user": "rmg_admin",
-        "password": "zw6aBw6GXrjV8MSURYfw",
-        "database": "np_rmg",
-        "host": "localhost",
+        "user": "bigpesa",
+        "password": "YP8mhNqxaZBbDtjQrS6m",
+        "database": "loyalty",
+        "host": "192.168.5.129",
         "port": 5432,
         "ssl": true,
         "max": 50,
         "min": 10,
         "idleTimeoutMillis": 500000
-      },
-      "pg_stg": {
-        "user": "bigpesa",
-        "password": "YP8mhNqxaZBbDtjQrS6m",
-        "database": "loyalty",
-        "host": "192.168.5.129",
-        "port": 5432
       }
     },
-    "mongo":{
+    "mongo": {
       "centralizeddb": "mongodb://localhost:27017/centralizeddb"
     }
   },
@@ -40,11 +33,8 @@
     "refresh_time": 18000
   },
   "s3_auth": {
-    "secretAccessKey": "kSoGtJvARexB8are0jnaeezfYGXsUNwKfvqMll1/",
-    "accessKeyId": "AKIAIR5WFEWX433MIGCA",
+    "secretAccessKey": "",
+    "accessKeyId": "",
     "region": "ap-south-1"
-  },
-  "oneSignalAppId":"8a205a4c-49ec-435a-a8ab-f33dfe9faa55",
-  "Authorization": "OTg3N2VlYjYtMGE2Ni00OTBhLTg3M2ItMzU0NmNkNmUzNTVl",
-  "iconUrl": "https://bigpesa.in/assets/img/logo.png"
+  }
 }
