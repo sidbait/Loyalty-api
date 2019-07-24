@@ -97,16 +97,16 @@ module.exports = {
             if (_app_id && _player_id) {
                 //  let _selectQuery = 'SELECT * from fn_get_app($1,$2)'
                 let _query = {
-                    text: "SELECT * from tbl_wallet_transaction where player_id = $1",
+                    text: "SELECT * from fn_wallet_history($1)",
                     values: [_player_id]
                 }
 
                 try {
                     let dbResult = await pgConnection.executeQuery('loyalty', _query)
 
-                    if (dbResult && dbResult.length > 0) {
+                    if (dbResult && dbResult.length > 0 && dbResult[0].data) {
 
-                        services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "GET_SUCCESS");
+                        services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_SUCCESS");
                     } else {
                         services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "NO_DATA_FOUND");
                     }
