@@ -12,10 +12,10 @@
   "db_connectionString": {
     "pg": {
       "pg_loyalty": {
-        "user": "bigpesa",
-        "password": "YP8mhNqxaZBbDtjQrS6m",
-        "database": "loyalty",
-        "host": "192.168.5.129",
+        "user": "rmg_admin",
+        "password": "zw6aBw6GXrjV8MSURYfw",
+        "database": "np_rmg",
+        "host": "localhost",
         "port": 5432,
         "ssl": true,
         "max": 50,
