@@ -4,7 +4,7 @@ const refModel = require('../../model/checkReferralModel');
 const customMsgType = "MASTER_MESSAGE";
 const customMsgTypeCM = "COMMON_MESSAGE";
 
-const rmg_api_url = 'http://13.235.44.156:3003/v1/claimEvent/'
+const rmg_api_url = 'http://13.233.109.31:3003/v1/claimEvent/'
 
 var rp = require('request-promise');
 
