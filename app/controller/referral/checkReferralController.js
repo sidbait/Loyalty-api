@@ -4,6 +4,8 @@ const refModel = require('../../model/checkReferralModel');
 const customMsgType = "MASTER_MESSAGE";
 const customMsgTypeCM = "COMMON_MESSAGE";
 
+const rmg_api_url = 'http://13.235.44.156:3003/v1/claimEvent/'
+
 var rp = require('request-promise');
 
 module.exports = {
@@ -282,7 +284,7 @@ async function checkRegistration(myGoal) {
                 let player_mobile = await refModel.getMobile(element.player_id);
                 let referBy_mobile = await refModel.getMobile(element.referred_by);
 
-                let url = 'http://localhost:3003/v1/claimEvent/registration';
+                let url = rmg_api_url + 'registration';
 
                 let body =
                 {
@@ -324,7 +326,7 @@ async function checkGamePlay(myGoal) {
             let player_mobile = await refModel.getMobile(player_id);
             let referBy_mobile = await refModel.getMobile(referred_by);
 
-            let url = 'http://localhost:3003/v1/claimEvent/gameplay';
+            let url = rmg_api_url + 'gameplay';
 
             let body =
             {
@@ -371,7 +373,7 @@ async function checkDeposit(myGoal) {
             let player_mobile = await refModel.getMobile(player_id);
             let referBy_mobile = await refModel.getMobile(referred_by);
 
-            let url = 'http://localhost:3003/v1/claimEvent/deposit';
+            let url = rmg_api_url + 'deposit';
 
             let body =
             {
