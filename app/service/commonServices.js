@@ -165,7 +165,7 @@ module.exports = {
         return new Promise(async function (resolve, reject) {
             try {
                 let _query = {
-                    text: `SELECT buy_amount FROM tbl_reward WHERE reward_id = $1`,
+                    text: `SELECT buy_amount FROM tbl_reward WHERE reward_id = $1 and status = 'ACTIVE'`,
                     values: [rewardId]
                 }
 
@@ -174,10 +174,11 @@ module.exports = {
                 console.log('getRewardBuyAmt', dbResult);
 
                 if (dbResult && dbResult.length > 0) {
+
                     resolve(parseInt(dbResult[0].buy_amount));
                 }
                 else {
-                    reject(null);
+                    resolve(0);
                 }
 
             } catch (error) {
