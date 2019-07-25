@@ -288,8 +288,7 @@ async function checkRegistration(myGoal) {
     myGoal.map(async element => {
         if (element.goal_code == 'REGISTRATION' && element.is_goal_achieved == false) {
 
-            let referred_by = element.referred_by;
-            let total_amount_earned_by_referral = await refModel.amountEarned(referred_by, _app_id, null);
+            let total_amount_earned_by_referral = await refModel.amountEarned(element.referred_by, element.app_id, null);
 
             console.log('total_amount_earned_by_referral ==>', total_amount_earned_by_referral);
 
