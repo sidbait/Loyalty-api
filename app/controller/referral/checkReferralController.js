@@ -195,7 +195,10 @@ module.exports = {
                 let goal = await refModel.getGoals(_player_id, _app_id, _goal_code);
 
                 if (goal && goal.length > 0) {
-                    if (goal[0].is_goal_achieved == false) {
+                    let referred_by = goal[0].referred_by;
+                    let total_amount_earned_by_referral = await refModel.amountEarned(referred_by, _app_id, null);
+
+                    if (goal[0].is_goal_achieved == false || total_amount_earned_by_referral <= 100) {
                         console.log('Goal need to achived');
 
                         if (_goal_code == 'GAMEPLAY') {
