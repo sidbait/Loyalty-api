@@ -199,27 +199,31 @@ module.exports = {
                     let total_amount_earned_by_referral = await refModel.amountEarned(referred_by, _app_id, null);
 
                     console.log('total_amount_earned_by_referral ==>', total_amount_earned_by_referral);
+                    if (total_amount_earned_by_referral <= 100) {
+                        if (goal[0].is_goal_achieved == false) {
+                            console.log('Goal need to achived');
 
-                    if (goal[0].is_goal_achieved == false && total_amount_earned_by_referral <= 100) {
-                        console.log('Goal need to achived');
+                            if (_goal_code == 'GAMEPLAY') {
 
-                        if (_goal_code == 'GAMEPLAY') {
+                                let x = checkGamePlay(goal[0])
 
-                            let x = checkGamePlay(goal[0])
+                                // console.log(JSON.parse(x).data);
+                            } else if (_goal_code == 'DEPOSIT') {
 
-                            // console.log(JSON.parse(x).data);
-                        } else if (_goal_code == 'DEPOSIT') {
+                                let x = checkDeposit(goal[0])
 
-                            let x = checkDeposit(goal[0])
+                            } else {
+                                console.log('new goal code ', _goal_code);
+                            }
 
                         } else {
-                            console.log('new goal code ', _goal_code);
+                            console.log('no Goal to achived');
                         }
-
+                        services.sendResponse.sendWithCode(req, res, goal, customMsgType, "GET_SUCCESS");
                     } else {
-                        console.log('no Goal to achived');
+                        services.sendResponse.sendWithCode(req, res, { err: 'total_amount_earned_by_referral <= 100' }, customMsgType, "GET_FAILED");
                     }
-                    services.sendResponse.sendWithCode(req, res, goal, customMsgType, "GET_SUCCESS");
+
                 } else {
                     services.sendResponse.sendWithCode(req, res, { err: 'no goal found' }, customMsgType, "GET_FAILED");
                 }
