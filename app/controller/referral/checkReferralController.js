@@ -200,8 +200,7 @@ module.exports = {
 
                     console.log('total_amount_earned_by_referral ==>', total_amount_earned_by_referral);
 
-
-                    if (goal[0].is_goal_achieved == false || total_amount_earned_by_referral <= 100) {
+                    if (goal[0].is_goal_achieved == false && total_amount_earned_by_referral <= 100) {
                         console.log('Goal need to achived');
 
                         if (_goal_code == 'GAMEPLAY') {
