@@ -299,7 +299,8 @@ async function checkRegistration(myGoal) {
                 let x = JSON.parse(d);
                 if (x.data && x.data.isCredited == true) {
                     // update in ref trns tbl
-                    let isCredited = await refModel.updateReferrerPlayerTransaction(element.player_id, 'REGISTRATION')
+                    let new_reward_amount = x.data.reward_amount;
+                    let isCredited = await refModel.updateReferrerPlayerTransaction(element.player_id, 'REGISTRATION', new_reward_amount)
                     console.log('isCredited ==>', isCredited);
                 }
 
@@ -342,7 +343,8 @@ async function checkGamePlay(myGoal) {
             let x = JSON.parse(d);
             if (x.data && x.data.isCredited == true) {
                 // update in ref trns tbl
-                let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'GAMEPLAY')
+                let new_reward_amount = x.data.reward_amount;
+                let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'GAMEPLAY',new_reward_amount)
                 console.log('isCredited ==>', isCredited);
             }
 
@@ -390,8 +392,8 @@ async function checkDeposit(myGoal) {
             console.log(JSON.parse(d));
             let x = JSON.parse(d);
             if (x.data && x.data.isCredited == true) {
-                // update in ref trns tbl
-                let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'DEPOSIT')
+                let new_reward_amount = x.data.reward_amount;
+                let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'DEPOSIT', new_reward_amount)
                 console.log('isCredited ==>', isCredited);
             }
 

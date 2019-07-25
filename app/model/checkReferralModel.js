@@ -232,9 +232,15 @@ module.exports = {
         });
     },
 
-    updateReferrerPlayerTransaction: async (player_id, goal_code) => {
+    updateReferrerPlayerTransaction: async (player_id, goal_code, reward_amount) => {
         return new Promise(async (resolve, reject) => {
-            let _query = `update tbl_referrer_player_transaction set is_goal_achieved = true where player_id = ${player_id} and goal_code = '${goal_code}' and is_goal_achieved = false RETURNING player_id`;
+            let _query;
+
+            if (reward_amount) {
+                _query = `update tbl_referrer_player_transaction set is_goal_achieved = true,reward_amount = ${reward_amount} where player_id = ${player_id} and goal_code = '${goal_code}' and is_goal_achieved = false RETURNING player_id`;
+            } else {
+                _query = `update tbl_referrer_player_transaction set is_goal_achieved = true where player_id = ${player_id} and goal_code = '${goal_code}' and is_goal_achieved = false RETURNING player_id`;
+            }
 
             try {
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
@@ -244,7 +250,7 @@ module.exports = {
 
             } catch (error) {
                 console.log(error);
-                
+
                 reject(false);
             }
         });
