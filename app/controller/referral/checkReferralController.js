@@ -366,6 +366,7 @@ async function checkDeposit(myGoal) {
     let goal_achieved_to = myGoal.goal_achieved_to;
     let expiry_date = myGoal.expiry_date;
     let minimumAmount = myGoal.minimum_amount;
+    let is_percentage = myGoal.is_percentage;
 
     return new Promise(async function (resolve, reject) {
         try {
@@ -381,7 +382,8 @@ async function checkDeposit(myGoal) {
                 count: goal_achieved_to,
                 reward_amount: reward_amount,
                 referBy_mobile: referBy_mobile,
-                minimumAmount: minimumAmount
+                minimumAmount: minimumAmount,
+                is_percentage: is_percentage
             }
 
             let d = await rmgCall(url, body)
