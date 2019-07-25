@@ -198,6 +198,9 @@ module.exports = {
                     let referred_by = goal[0].referred_by;
                     let total_amount_earned_by_referral = await refModel.amountEarned(referred_by, _app_id, null);
 
+                    console.log('total_amount_earned_by_referral ==>', total_amount_earned_by_referral);
+
+
                     if (goal[0].is_goal_achieved == false || total_amount_earned_by_referral <= 100) {
                         console.log('Goal need to achived');
 
@@ -347,7 +350,7 @@ async function checkGamePlay(myGoal) {
             if (x.data && x.data.isCredited == true) {
                 // update in ref trns tbl
                 let new_reward_amount = x.data.reward_amount;
-                let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'GAMEPLAY',new_reward_amount)
+                let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'GAMEPLAY', new_reward_amount)
                 console.log('isCredited ==>', isCredited);
             }
 
