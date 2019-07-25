@@ -287,32 +287,41 @@ async function checkRegistration(myGoal) {
 
     myGoal.map(async element => {
         if (element.goal_code == 'REGISTRATION' && element.is_goal_achieved == false) {
-            console.log(`send reward_amount ${element.reward_amount} to referred_by ${element.referred_by}`);
+
+            let referred_by = element.referred_by;
+            let total_amount_earned_by_referral = await refModel.amountEarned(referred_by, _app_id, null);
+
+            console.log('total_amount_earned_by_referral ==>', total_amount_earned_by_referral);
+
             try {
+                if (total_amount_earned_by_referral <= 100) {
+                    console.log(`send reward_amount ${element.reward_amount} to referred_by ${element.referred_by}`);
+                    let player_mobile = await refModel.getMobile(element.player_id);
+                    let referBy_mobile = await refModel.getMobile(element.referred_by);
 
-                let player_mobile = await refModel.getMobile(element.player_id);
-                let referBy_mobile = await refModel.getMobile(element.referred_by);
+                    let url = rmg_api_url + 'registration';
 
-                let url = rmg_api_url + 'registration';
+                    let body =
+                    {
+                        player_mobile: player_mobile,
+                        reward_amount: element.reward_amount,
+                        referBy_mobile: referBy_mobile
+                    }
 
-                let body =
-                {
-                    player_mobile: player_mobile,
-                    reward_amount: element.reward_amount,
-                    referBy_mobile: referBy_mobile
+
+                    let d = await rmgCall(url, body)
+                    console.log(JSON.parse(d));
+                    let x = JSON.parse(d);
+                    if (x.data && x.data.isCredited == true) {
+                        // update in ref trns tbl
+                        let new_reward_amount = x.data.reward_amount;
+                        let isCredited = await refModel.updateReferrerPlayerTransaction(element.player_id, 'REGISTRATION', new_reward_amount)
+                        console.log('isCredited ==>', isCredited);
+                    }
+                } else {
+                    
+                    console.log('registration >> total_amount_earned_by_referral <= 100' );
                 }
-
-
-                let d = await rmgCall(url, body)
-                console.log(JSON.parse(d));
-                let x = JSON.parse(d);
-                if (x.data && x.data.isCredited == true) {
-                    // update in ref trns tbl
-                    let new_reward_amount = x.data.reward_amount;
-                    let isCredited = await refModel.updateReferrerPlayerTransaction(element.player_id, 'REGISTRATION', new_reward_amount)
-                    console.log('isCredited ==>', isCredited);
-                }
-
 
             } catch (error) {
                 console.log(error);
