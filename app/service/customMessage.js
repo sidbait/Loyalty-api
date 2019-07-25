@@ -42,6 +42,12 @@ module.exports = {
             message: "Insufficient Balance in Wallet",
             messageCode: "INSUFFICIENT_BALANCE",
             statusCode: 400
+        },
+        "CONTEST_ENDED": {
+            success: 0,
+            message: "Reward Contest has been ended",
+            messageCode: "CONTEST_ENDED",
+            statusCode: 400
         }
     },
 
