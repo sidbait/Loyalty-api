@@ -37,6 +37,7 @@ module.exports = {
                     let referBy = await refModel.getReferByPlayer(inviteCode, null, appId);
 
                     if (referBy && referBy.playerId && referBy.appId) {
+                        
                         console.log('referBy.playerId => ', referBy.playerId, 'referBy.appId => ', referBy.appId);
 
                         let goals = await refModel.checkGoal(playerId, referBy.playerId, referBy.appId);
@@ -68,8 +69,9 @@ module.exports = {
     getInviteCode: async function (req, res) {
 
         try {
-            _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-            _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
+
+            let _app_id = req.userDetails.appId;
+            let _player_id = req.userDetails.playerId;
 
             if (_app_id && _player_id) {
 
@@ -104,12 +106,10 @@ module.exports = {
 
         if (validation.passes()) {
 
-            let _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-            let _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
+            let _app_id = req.userDetails.appId;
+            let _player_id = req.userDetails.playerId;
             let _refcode = req.body.refcode ? req.body.refcode : null;
 
-            console.log('_app_id', _app_id);
-            console.log('_player_id', _player_id);
             console.log('_refcode', _refcode);
 
             if (_app_id && _player_id) {
@@ -150,11 +150,8 @@ module.exports = {
 
     claimEventList: async function (req, res) {
 
-        let _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-        let _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
-
-        console.log('_app_id', _app_id);
-        console.log('_player_id', _player_id);
+        let _app_id = req.userDetails.appId;
+        let _player_id = req.userDetails.playerId;       
 
         if (_app_id && _player_id) {
 
@@ -176,18 +173,13 @@ module.exports = {
         let rules = {
             "goal_code": 'required',
         };
-        console.log(req.body);
 
         let validation = new services.validator(req.body, rules);
 
         if (validation.passes()) {
 
-            let _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-            let _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
             let _goal_code = req.body.goal_code ? req.body.goal_code : null;
 
-            console.log('_app_id', _app_id);
-            console.log('_player_id', _player_id);
             console.log('_goal_code', _goal_code);
 
             if (_app_id && _player_id) {
@@ -195,26 +187,35 @@ module.exports = {
                 let goal = await refModel.getGoals(_player_id, _app_id, _goal_code);
 
                 if (goal && goal.length > 0) {
-                    if (goal[0].is_goal_achieved == false) {
-                        console.log('Goal need to achived');
+                    let referred_by = goal[0].referred_by;
+                    let total_amount_earned_by_referral = await refModel.amountEarned(referred_by, _app_id, null);
 
-                        if (_goal_code == 'GAMEPLAY') {
+                    console.log('total_amount_earned_by_referral ==>', total_amount_earned_by_referral);
+                    if (total_amount_earned_by_referral <= 500) {
+                        if (goal[0].is_goal_achieved == false) {
+                            console.log('Goal need to achived');
 
-                            let x = checkGamePlay(goal[0])
+                            if (_goal_code == 'GAMEPLAY') {
 
-                            // console.log(JSON.parse(x).data);
-                        } else if (_goal_code == 'DEPOSIT') {
+                                let x = checkGamePlay(goal[0])
 
-                            let x = checkDeposit(goal[0])
+                                // console.log(JSON.parse(x).data);
+                            } else if (_goal_code == 'DEPOSIT') {
+
+                                let x = checkDeposit(goal[0])
+
+                            } else {
+                                console.log('new goal code ', _goal_code);
+                            }
 
                         } else {
-                            console.log('new goal code ', _goal_code);
+                            console.log('no Goal to achived');
                         }
-
+                        services.sendResponse.sendWithCode(req, res, goal, customMsgType, "GET_SUCCESS");
                     } else {
-                        console.log('no Goal to achived');
+                        services.sendResponse.sendWithCode(req, res, { err: 'total_amount_earned_by_referral <= 500' }, customMsgType, "GET_FAILED");
                     }
-                    services.sendResponse.sendWithCode(req, res, goal, customMsgType, "GET_SUCCESS");
+
                 } else {
                     services.sendResponse.sendWithCode(req, res, { err: 'no goal found' }, customMsgType, "GET_FAILED");
                 }
@@ -232,11 +233,8 @@ module.exports = {
 
     amountEarned: async function (req, res) {
 
-        let _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-        let _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
-
-        console.log('_app_id', _app_id);
-        console.log('_player_id', _player_id);
+        let _app_id = req.userDetails.appId;
+        let _player_id = req.userDetails.playerId;
 
         if (_app_id && _player_id) {
             // total amount earned by referral
@@ -253,11 +251,8 @@ module.exports = {
 
     getReferralDetail: async function (req, res) {
 
-        let _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-        let _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
-
-        console.log('_app_id', _app_id);
-        console.log('_player_id', _player_id);
+        let _app_id = req.userDetails.appId;
+        let _player_id = req.userDetails.playerId;
 
         if (_app_id && _player_id) {
 
@@ -278,31 +273,40 @@ async function checkRegistration(myGoal) {
 
     myGoal.map(async element => {
         if (element.goal_code == 'REGISTRATION' && element.is_goal_achieved == false) {
-            console.log(`send reward_amount ${element.reward_amount} to referred_by ${element.referred_by}`);
+
+            let total_amount_earned_by_referral = await refModel.amountEarned(element.referred_by, element.app_id, null);
+
+            console.log('total_amount_earned_by_referral ==>', total_amount_earned_by_referral);
+
             try {
+                if (total_amount_earned_by_referral <= 500) {
+                    console.log(`send reward_amount ${element.reward_amount} to referred_by ${element.referred_by}`);
+                    let player_mobile = await refModel.getMobile(element.player_id);
+                    let referBy_mobile = await refModel.getMobile(element.referred_by);
 
-                let player_mobile = await refModel.getMobile(element.player_id);
-                let referBy_mobile = await refModel.getMobile(element.referred_by);
+                    let url = rmg_api_url + 'registration';
 
-                let url = rmg_api_url + 'registration';
+                    let body =
+                    {
+                        player_mobile: player_mobile,
+                        reward_amount: element.reward_amount,
+                        referBy_mobile: referBy_mobile
+                    }
 
-                let body =
-                {
-                    player_mobile: player_mobile,
-                    reward_amount: element.reward_amount,
-                    referBy_mobile: referBy_mobile
+
+                    let d = await rmgCall(url, body)
+                    console.log(JSON.parse(d));
+                    let x = JSON.parse(d);
+                    if (x.data && x.data.isCredited == true) {
+                        // update in ref trns tbl
+                        let new_reward_amount = x.data.reward_amount;
+                        let isCredited = await refModel.updateReferrerPlayerTransaction(element.player_id, 'REGISTRATION', new_reward_amount)
+                        console.log('isCredited ==>', isCredited);
+                    }
+                } else {
+
+                    console.log('registration >> total_amount_earned_by_referral <= 500');
                 }
-
-
-                let d = await rmgCall(url, body)
-                console.log(JSON.parse(d));
-                let x = JSON.parse(d);
-                if (x.data && x.data.isCredited == true) {
-                    // update in ref trns tbl
-                    let isCredited = await refModel.updateReferrerPlayerTransaction(element.player_id, 'REGISTRATION')
-                    console.log('isCredited ==>', isCredited);
-                }
-
 
             } catch (error) {
                 console.log(error);
@@ -342,7 +346,8 @@ async function checkGamePlay(myGoal) {
             let x = JSON.parse(d);
             if (x.data && x.data.isCredited == true) {
                 // update in ref trns tbl
-                let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'GAMEPLAY')
+                let new_reward_amount = x.data.reward_amount;
+                let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'GAMEPLAY', new_reward_amount)
                 console.log('isCredited ==>', isCredited);
             }
 
@@ -366,6 +371,7 @@ async function checkDeposit(myGoal) {
     let goal_achieved_to = myGoal.goal_achieved_to;
     let expiry_date = myGoal.expiry_date;
     let minimumAmount = myGoal.minimum_amount;
+    let is_percentage = myGoal.is_percentage;
 
     return new Promise(async function (resolve, reject) {
         try {
@@ -381,15 +387,16 @@ async function checkDeposit(myGoal) {
                 count: goal_achieved_to,
                 reward_amount: reward_amount,
                 referBy_mobile: referBy_mobile,
-                minimumAmount: minimumAmount
+                minimumAmount: minimumAmount,
+                is_percentage: is_percentage
             }
 
             let d = await rmgCall(url, body)
             console.log(JSON.parse(d));
             let x = JSON.parse(d);
             if (x.data && x.data.isCredited == true) {
-                // update in ref trns tbl
-                let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'DEPOSIT')
+                let new_reward_amount = x.data.reward_amount;
+                let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'DEPOSIT', new_reward_amount)
                 console.log('isCredited ==>', isCredited);
             }
 

@@ -29,9 +29,10 @@ module.exports = {
 
                         services.sendResponse.sendWithCode(req, res, null, "COMMON_MESSAGE", "INVALID_ACCESS_TOKEN");
                     } else {
-                        console.log(decoded.exp, decoded.iat);
 
-                        req.userDetails = decoded;
+                        req.userDetails = decoded.data.identity;
+                        console.log('playerId ==> ', req.userDetails.playerId);
+                        console.log('appId ==> ', req.userDetails.appId);
                         return next();
                     }
                 });
@@ -42,8 +43,6 @@ module.exports = {
     },
 
     validateAppSecret: async (req, res, next) => {
-
-        console.log(req.headers);
 
         let rules = {
             "x-naz-app-key": 'required',

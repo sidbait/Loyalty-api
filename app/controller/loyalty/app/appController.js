@@ -70,6 +70,10 @@ module.exports = {
 
                         console.log(_response == 'SUCCESS_REGISTERD');
 
+                        console.log(
+                            'req.query: ' + JSON.stringify(req.query) + '\n' +
+                            'req.body: ' + JSON.stringify(req.body)
+                        )
 
                         if (_response == 'SUCCESS_REGISTERD') {
 
