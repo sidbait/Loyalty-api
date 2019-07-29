@@ -37,6 +37,7 @@ module.exports = {
                     let referBy = await refModel.getReferByPlayer(inviteCode, null, appId);
 
                     if (referBy && referBy.playerId && referBy.appId) {
+                        
                         console.log('referBy.playerId => ', referBy.playerId, 'referBy.appId => ', referBy.appId);
 
                         let goals = await refModel.checkGoal(playerId, referBy.playerId, referBy.appId);
@@ -68,8 +69,9 @@ module.exports = {
     getInviteCode: async function (req, res) {
 
         try {
-            _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-            _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
+
+            let _app_id = req.userDetails.appId;
+            let _player_id = req.userDetails.playerId;
 
             if (_app_id && _player_id) {
 
@@ -104,12 +106,10 @@ module.exports = {
 
         if (validation.passes()) {
 
-            let _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-            let _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
+            let _app_id = req.userDetails.appId;
+            let _player_id = req.userDetails.playerId;
             let _refcode = req.body.refcode ? req.body.refcode : null;
 
-            console.log('_app_id', _app_id);
-            console.log('_player_id', _player_id);
             console.log('_refcode', _refcode);
 
             if (_app_id && _player_id) {
@@ -150,11 +150,8 @@ module.exports = {
 
     claimEventList: async function (req, res) {
 
-        let _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-        let _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
-
-        console.log('_app_id', _app_id);
-        console.log('_player_id', _player_id);
+        let _app_id = req.userDetails.appId;
+        let _player_id = req.userDetails.playerId;       
 
         if (_app_id && _player_id) {
 
@@ -176,18 +173,13 @@ module.exports = {
         let rules = {
             "goal_code": 'required',
         };
-        console.log(req.body);
 
         let validation = new services.validator(req.body, rules);
 
         if (validation.passes()) {
 
-            let _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-            let _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
             let _goal_code = req.body.goal_code ? req.body.goal_code : null;
 
-            console.log('_app_id', _app_id);
-            console.log('_player_id', _player_id);
             console.log('_goal_code', _goal_code);
 
             if (_app_id && _player_id) {
@@ -241,11 +233,8 @@ module.exports = {
 
     amountEarned: async function (req, res) {
 
-        let _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-        let _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
-
-        console.log('_app_id', _app_id);
-        console.log('_player_id', _player_id);
+        let _app_id = req.userDetails.appId;
+        let _player_id = req.userDetails.playerId;
 
         if (_app_id && _player_id) {
             // total amount earned by referral
@@ -262,11 +251,8 @@ module.exports = {
 
     getReferralDetail: async function (req, res) {
 
-        let _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-        let _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
-
-        console.log('_app_id', _app_id);
-        console.log('_player_id', _player_id);
+        let _app_id = req.userDetails.appId;
+        let _player_id = req.userDetails.playerId;
 
         if (_app_id && _player_id) {
 
@@ -318,8 +304,8 @@ async function checkRegistration(myGoal) {
                         console.log('isCredited ==>', isCredited);
                     }
                 } else {
-                    
-                    console.log('registration >> total_amount_earned_by_referral <= 500' );
+
+                    console.log('registration >> total_amount_earned_by_referral <= 500');
                 }
 
             } catch (error) {

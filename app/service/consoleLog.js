@@ -64,7 +64,8 @@ module.exports = {
                 'dataBase - '+dataBase+'\n'+
                 'db query: ' + JSON.stringify(dbQuery) + '\n' +
                 'dbError: ' + JSON.stringify(dbError) + '\n' +
-                'err desc: ' + errorDesc + '\n' +
+                // 'err desc: ' + errorDesc + '\n' +
+                'NODE_ENV: ' + process.env.NODE_ENV + '\n' +
                 'dbResult: ' + JSON.stringify(dbResult) + '\n' +
                 'timeToExecute: ' + timeToExecute.preciseWords + '\n' +
                 '-------------------------------------------------------\n');
