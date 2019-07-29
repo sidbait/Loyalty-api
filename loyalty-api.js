@@ -95,6 +95,8 @@ MongoClient.connect(config.db_connectionString.mongo.centralizeddb, { useNewUrlP
 
             console.log('Listening on port:' + config.app.port);
             console.log('Welcome to LOYALTY API');
+            console.log('NODE_ENV', process.env.NODE_ENV);
+
         });
     }
 });

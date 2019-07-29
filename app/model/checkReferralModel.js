@@ -106,7 +106,7 @@ module.exports = {
                 let mData;
                 if (inviteCode) {
                     mData = await mongodb.mongofind('inviteCodes', { inviteCode, appId }, 0);
-                    console.log('is Duplicate inviteCodes?', inviteCode, appId, mData.length > 1);
+                    // console.log('is Duplicate inviteCodes?', inviteCode, appId, mData.length > 1);
                     if (mData.length > 1) {
                         mongodb.mongoinsert('ref_error_log', { error: 'Duplicate inviteCodes in getReferByPlayer()', inviteCode });
                     }
@@ -128,14 +128,11 @@ module.exports = {
 
         return new Promise(async (resolve, reject) => {
 
-            // if (goalCode == 'REGISTRATION') {
-
             try {
 
-                let _query = `select * from tbl_referrer_player_transaction where player_id =${player_id} and app_id =${appId}`;
+                let _query = `select * from tbl_referrer_player_transaction where player_id = ${player_id} and app_id = ${appId}`;
 
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
-
 
                 if (dbResult && dbResult.length > 0) {
                     // check active goals from ref_trans table

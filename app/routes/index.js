@@ -35,8 +35,8 @@ apiRoutes.get('/sendMsg', function (req, res) {
 
 app.use(middleware.injectMiddleware(
     [
-        // validate.validateAppSecret,
-        // validate.validateAccessToken,
+        validate.validateAppSecret,
+        validate.validateAccessToken,
     ],
     [
         apiRoutes_player.use('/wallet', walletRoutes),
