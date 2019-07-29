@@ -85,7 +85,7 @@ module.exports = {
                                 rewardsData[i].joins = 0
                             }
                         }
-
+ 
                         customResult = rewardsData
                         services.sendResponse.sendWithCode(req, res, customResult, customMsgType, "GET_SUCCESS");
 
