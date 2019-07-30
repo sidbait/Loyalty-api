@@ -37,7 +37,7 @@ module.exports = {
                     let referBy = await refModel.getReferByPlayer(inviteCode, null, appId);
 
                     if (referBy && referBy.playerId && referBy.appId) {
-                        
+
                         console.log('referBy.playerId => ', referBy.playerId, 'referBy.appId => ', referBy.appId);
 
                         let goals = await refModel.checkGoal(playerId, referBy.playerId, referBy.appId);
@@ -151,7 +151,7 @@ module.exports = {
     claimEventList: async function (req, res) {
 
         let _app_id = req.userDetails.appId;
-        let _player_id = req.userDetails.playerId;       
+        let _player_id = req.userDetails.playerId;
 
         if (_app_id && _player_id) {
 
@@ -179,6 +179,8 @@ module.exports = {
         if (validation.passes()) {
 
             let _goal_code = req.body.goal_code ? req.body.goal_code : null;
+            let _app_id = req.userDetails.appId;
+            let _player_id = req.userDetails.playerId;
 
             console.log('_goal_code', _goal_code);
 
