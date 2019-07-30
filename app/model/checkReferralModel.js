@@ -232,11 +232,15 @@ module.exports = {
     getReferralDetail: async (player_id) => {
         return new Promise(async (resolve, reject) => {
 
-            let _query = `select master.mobile_number,app.app_user_name,ref_transaction.goal_code,ref_transaction.is_goal_achieved,ref_transaction.reward_amount,ref_transaction.goal_achieved_from,ref_transaction.goal_achieved_to,ref_transaction.minimum_amount,ref_transaction.is_percentage,ref_transaction.status,ref_transaction.add_date,ref_transaction.goal_achieved_date,ref_transaction.expiry_date
-            from tbl_referrer_player_transaction ref_transaction
-            inner join tbl_player_app app on ref_transaction.player_id = app.player_id 
-            inner join tbl_player_master master on master.player_id = app.player_id 
-            where referred_by = ${player_id}`;
+            // let _query = `select master.mobile_number,app.app_user_name,ref_transaction.goal_code,ref_transaction.is_goal_achieved,ref_transaction.reward_amount,ref_transaction.goal_achieved_from,ref_transaction.goal_achieved_to,ref_transaction.minimum_amount,ref_transaction.is_percentage,ref_transaction.status,ref_transaction.add_date,ref_transaction.goal_achieved_date,ref_transaction.expiry_date
+            // from tbl_referrer_player_transaction ref_transaction
+            // inner join tbl_player_app app on ref_transaction.player_id = app.player_id 
+            // inner join tbl_player_master master on master.player_id = app.player_id 
+            // where referred_by = ${player_id}`;
+
+            let _query = `select tbl_referrer_player_transaction.*,tbl_player_app.app_user_name from tbl_referrer_player_transaction
+            inner join tbl_player_app on tbl_referrer_player_transaction.player_id = tbl_player_app.player_id where referred_by = ${player_id}`;
+
 
             try {
 
