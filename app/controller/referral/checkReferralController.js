@@ -203,12 +203,12 @@ module.exports = {
 
                             if (_goal_code == 'GAMEPLAY') {
 
-                                let x = checkGamePlay(goal[0])
+                                let x = await checkGamePlay(goal[0])
                                 services.sendResponse.sendWithCode(req, res, x, customMsgType, "IN_PROCESS");
 
                             } else if (_goal_code == 'DEPOSIT') {
 
-                                let x = checkDeposit(goal[0])
+                                let x = await checkDeposit(goal[0])
                                 services.sendResponse.sendWithCode(req, res, x, customMsgType, "IN_PROCESS");
 
                             } else {
