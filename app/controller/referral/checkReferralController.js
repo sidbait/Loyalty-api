@@ -204,12 +204,12 @@ module.exports = {
                             if (_goal_code == 'GAMEPLAY') {
 
                                 let x = checkGamePlay(goal[0])
-                                services.sendResponse.sendWithCode(req, res, x, customMsgType, "GET_SUCCESS");
+                                services.sendResponse.sendWithCode(req, res, x, customMsgType, "IN_PROCESS");
 
                             } else if (_goal_code == 'DEPOSIT') {
 
                                 let x = checkDeposit(goal[0])
-                                services.sendResponse.sendWithCode(req, res, x, customMsgType, "GET_SUCCESS");
+                                services.sendResponse.sendWithCode(req, res, x, customMsgType, "IN_PROCESS");
 
                             } else {
 
@@ -409,13 +409,18 @@ async function checkDeposit(myGoal) {
             }
 
             let d = await rmgCall(url, body)
+
             console.log(JSON.parse(d));
+
             let x = JSON.parse(d);
+
             if (x.data && x.data.isCredited == true) {
                 let new_reward_amount = x.data.reward_amount;
                 let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'DEPOSIT', new_reward_amount)
                 console.log('isCredited ==>', isCredited);
             }
+
+            resolve(x);
 
         } catch (error) {
             console.log(error);
