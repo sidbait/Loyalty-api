@@ -17,6 +17,7 @@ const walletRoutes = require('../routes/loyalty/wallet/walletRoutes');
 const playerRoutes = require('../routes/loyalty/player/playerRoutes');
 const rewardRoutes = require('../routes/loyalty/rewards/rewardRoutes');
 const goodsRoutes = require('../routes/loyalty/goods/goodsRoute');
+const eventRoutes = require('../routes/loyalty/event/eventRoutes');
 const checkReferralRoutes = require('../routes/referral/checkReferralRoutes');
 
 var io = require('socket.io').listen(4444);
@@ -44,6 +45,7 @@ app.use(middleware.injectMiddleware(
         apiRoutes_login.use('/player', playerRoutes),
         apiRoutes_login.use('/rewards', rewardRoutes),
         apiRoutes_login.use('/goods', goodsRoutes),
+        apiRoutes_login.use('/event', eventRoutes),
         apiRoutes_player.use('/checkReferral', checkReferralRoutes)
     ]
 ));

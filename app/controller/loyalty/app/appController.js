@@ -75,11 +75,10 @@ module.exports = {
                             'req.body: ' + JSON.stringify(req.body)
                         )
 
+                        let _player_id = tempRes[1]
+                        let _player_app_id = tempRes[2]
+
                         if (_response == 'SUCCESS_REGISTERD') {
-
-
-                            let _player_id = tempRes[1]
-                            let _player_app_id = tempRes[2]
 
                             let tokenParam = {
                                 playerId: _player_id,
@@ -96,9 +95,7 @@ module.exports = {
 
                                 customResponse.accessToken = nz_access_token
                                 customResponse.playerId = _player_id
-
                                 services.sendResponse.sendWithCode(req, res, customResponse, customRegMsgType, "USER_REGISTERED_SUCCESS");
-
                                 checkReferralController.onRegistration(_player_id, _app_id, inviteCode);
                             }
 
@@ -110,9 +107,7 @@ module.exports = {
                             }
 
                             let tokenResult = await pgConnection.executeQuery('loyalty', _tokenQuery)
-
                             console.log('tokenResult', tokenResult);
-
                             customResponse.playerId = tempRes[1]
                             customResponse.accessToken = tokenResult[0].nz_access_token
                             console.log('USER_ALREADY_REGISTERD', customResponse);
@@ -191,17 +186,33 @@ module.exports = {
                         let _response = tempRes[0] ? tempRes[0].trim() : tempRes[0]
 
                         console.log(_response == 'SUCCESS_REGISTERD');
-                        /* 
-                                                if (_response == 'SUCCESS_REGISTERD') {
-                        
-                                                } else {
-                        
-                                                }
-                         */
+
                         let _player_id = parseInt(tempRes[1])
                         let _player_app_id = tempRes[2]
                         let _otp_number = services.commonServices.otpNumber()
-                        let _sms_id = 1245
+                        let _sms_id = null
+
+                        if (_response == 'SUCCESS_REGISTERD') {
+                            /* let _player_id = tempRes[1]
+                            let _player_app_id = tempRes[2] */
+
+                            let tokenParam = {
+                                playerId: _player_id,
+                                appId: _app_id
+                            }
+
+                            nz_access_token = jwtToken.generateToken(tokenParam);
+
+                            let updateTokenQuery = `update tbl_player_app set nz_access_token = '${nz_access_token}' where  player_app_id = ${_player_app_id} returning *`;
+
+                            let updateResult = await pgConnection.executeQuery('loyalty', updateTokenQuery)
+
+
+                        } else {
+
+                        }
+
+
 
                         let otpQuery = {
                             text: "select * from fn_generate_otp($1,$2,$3)",
@@ -342,6 +353,32 @@ module.exports = {
         }
     },
 
-  
+
+    generateToken: async (req, res) => {
+
+        let _player_id = req.body.player_id
+        let _app_id = req.appId
+
+        let tokenParam = {
+            playerId: _player_id,
+            appId: _app_id
+        }
+        let customResponse = {};
+
+        let nz_access_token = jwtToken.generateToken(tokenParam);
+
+        let updateTokenQuery = `update tbl_player_app set nz_access_token = '${nz_access_token}' where  player_id = ${_player_id} and app_id = ${_app_id} returning *`;
+
+        let updateResult = await pgConnection.executeQuery('loyalty', updateTokenQuery)
+
+        if (updateResult && updateResult.length > 0) {
+
+            customResponse.accessToken = nz_access_token
+            customResponse.playerId = _player_id
+
+            services.sendResponse.sendWithCode(req, res, customResponse, customRegMsgType, "USER_REGISTERED_SUCCESS");
+
+        }
+    }
 
 }

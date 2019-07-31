@@ -76,7 +76,7 @@ module.exports = {
                         console.log('player_id', typeof _goods_id, _goods_id);
 
                         try {
-                            debitSuccess = await services.commonServices.walletTransaction(goodsBuyAmt, _app_id, _player_id, null, 'DEBIT', 'SUCCESS', 'GOODS',_goods_id)
+                            debitSuccess = await services.commonServices.walletTransaction(goodsBuyAmt, _app_id, _player_id, null, 'DEBIT', 'SUCCESS', 'GOODS', _goods_id)
                         } catch (error) {
                             console.log(error);
                             debitSuccess = false
@@ -94,15 +94,15 @@ module.exports = {
 
                             let dbResult = await pgConnection.executeQuery('loyalty', _query)
                             console.log('fn_buy_goods', dbResult);
-                            dbResultArr.push(dbResult[0])
+                            // dbResultArr.push(dbResult[0])
 
-                        }
+                            if (dbResult && dbResult.length > 0) {
+                                services.sendResponse.sendWithCode(req, res, dbResult[0], customMsgType, "GET_SUCCESS");
 
-                        if (dbResultArr && dbResultArr.length > 0) {
-                            services.sendResponse.sendWithCode(req, res, dbResultArr, customMsgType, "GET_SUCCESS");
+                            } else {
+                                services.sendResponse.sendWithCode(req, res, '', customMsgType, "GET_FAILED");
+                            }
 
-                        } else {
-                            services.sendResponse.sendWithCode(req, res, dbResultArr, customMsgType, "GET_FAILED");
                         }
 
                     } else {
