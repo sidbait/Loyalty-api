@@ -67,6 +67,18 @@ module.exports = {
             messageCode: "REGISTERED_SUCCESS",
             statusCode: 200
         },
+        "INVALID_OTP": {
+            success: 0,
+            message: "Invalid Otp",
+            messageCode: "INVALID_OTP",
+            statusCode: 401
+        },
+        "OTP_SUCCESS": {
+            success: 1,
+            message: "OTP login successfully",
+            messageCode: "OTP_SUCCESS",
+            statusCode: 200
+        },
         "USER_DEACTIVE": {
             success: 0,
             message: "Your account is De-Active! Please contact to your Admin to activate it.",

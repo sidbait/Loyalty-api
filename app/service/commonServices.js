@@ -66,6 +66,34 @@ module.exports = {
 
     },
 
+    getPlayerIdByMobile: async (mobile) => {
+
+        return new Promise(async function (resolve, reject) {
+            try {
+                let _query = {
+                    text: `SELECT player_id FROM tbl_player_master WHERE mobile_number = $1`,
+                    values: [mobile]
+                }
+
+                let dbResult = await pgConnection.executeQuery('loyalty', _query);
+
+                console.log('getPlayerIdByToken', dbResult);
+
+                if (dbResult && dbResult.length > 0) {
+                    resolve(parseInt(dbResult[0].player_id));
+                }
+                else {
+                    resolve(null);
+                }
+
+            } catch (error) {
+                reject(error)
+            }
+
+        });
+
+    },
+
     getWalletBalance: async (playerId) => {
 
         return new Promise(async function (resolve, reject) {
@@ -96,7 +124,7 @@ module.exports = {
 
 
 
-    walletTransaction: (txn_amt, app_id, player_id, reward_id = null, txn_type, txn_status, txn_mode, event_id = null, event_code = null, event_name = null, ) => {
+    walletTransaction: (txn_amt, app_id, player_id, reward_id = null, txn_type, txn_status, txn_mode, goods_id = null, event_id = null, event_code = null, event_name = null, ) => {
         return new Promise(async function (resolve, reject) {
 
             let np_balance;
@@ -104,13 +132,10 @@ module.exports = {
                 np_balance = await module.exports.getWalletBalance(player_id)
             } catch (error) {
                 console.log(error);
-
                 np_balance = 0
             }
 
             console.log('np_balance', np_balance, txn_type);
-
-
             if (txn_type == 'DEBIT' && np_balance < txn_amt) {
                 resolve(false);
             } else {
@@ -139,8 +164,8 @@ module.exports = {
                         console.log('player_id', typeof reward_id, reward_id);
 
                         let _query = {
-                            text: "SELECT * from fn_wallet_transaction($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
-                            values: [app_id, player_id, event_id, event_code, event_name, txn_amt, _order_id, txn_type, txn_status, txn_mode, reward_id]
+                            text: "SELECT * from fn_wallet_transaction($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
+                            values: [app_id, player_id, event_id, event_code, event_name, txn_amt, _order_id, txn_type, txn_status, txn_mode, reward_id, goods_id]
                         }
 
                         let dbResult = await pgConnection.executeQuery('loyalty', _query)
@@ -188,6 +213,60 @@ module.exports = {
         });
     },
 
+    getGoodsBuyAmt: (goodsId) => {
+        return new Promise(async function (resolve, reject) {
+            try {
+                let _query = {
+                    text: `SELECT buy_amount FROM tbl_goods_master WHERE goods_id = $1 and status = 'ACTIVE'`,
+                    values: [goodsId]
+                }
+
+                let dbResult = await pgConnection.executeQuery('loyalty', _query);
+
+                console.log('getGoodsBuyAmt', dbResult);
+
+                if (dbResult && dbResult.length > 0) {
+
+                    resolve(parseInt(dbResult[0].buy_amount));
+                }
+                else {
+                    resolve(0);
+                }
+
+            } catch (error) {
+                reject(error)
+            }
+
+        });
+    },
+
+    getLeftSaleGoods: (goodsId) => {
+        return new Promise(async function (resolve, reject) {
+            try {
+                let _query = {
+                    text: `select count(*) from tbl_goods_bought where goods_id = $1 and txn_date::date = now()::date`,
+                    values: [goodsId]
+                }
+
+                let dbResult = await pgConnection.executeQuery('loyalty', _query);
+
+                console.log('getLeftSaleGoods', dbResult);
+
+                if (dbResult && dbResult.length > 0) {
+
+                    resolve(parseInt(dbResult[0].count));
+                }
+                else {
+                    resolve(0);
+                }
+
+            } catch (error) {
+                reject(error)
+            }
+
+        });
+    },
+
     getTimeDiif: (dt1, dt2) => {
         var diff = (dt1.getTime() - dt2.getTime()) / 1000;
         // diff /= 60;
@@ -201,6 +280,21 @@ module.exports = {
         var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
         for (var i = 0; i < length; i++) {
+
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+        }
+
+        return text;
+    },
+
+    otpNumber() {
+
+        var text = "";
+
+        var possible = "0123456789";
+
+        for (var i = 0; i < 4; i++) {
 
             text += possible.charAt(Math.floor(Math.random() * possible.length));
 
@@ -223,8 +317,8 @@ module.exports = {
                 let winCount = await pgConnection.executeQuery('loyalty', winCountQuery);
                 winCount = parseInt(winCount[0].count)
 
-                console.log('winCount' , winCount , winCount == 0);
-                
+                console.log('winCount', winCount, winCount == 0);
+
                 if (winCount == 0) {
 
                     let _query = {
@@ -312,34 +406,80 @@ module.exports = {
         })
     },
 
+    registerEventClaim: (playerId, appId) => {
+        return new Promise(async (resolve, reject) => {
+
+            try {
+                let event_id, event_name, event_code, points;
+                let eventQuery = `select * from tbl_app_events where event_code = 'REG' and status= 'ACTIVE'`
+                let eventResponse = await pgConnection.executeQuery('loyalty', eventQuery)
+
+                console.log('_participantsCount')
+                console.log(eventResponse);
+                if (eventResponse && eventResponse.length > 0) {
+
+                    event_id = eventResponse[0].event_id
+                    event_name = eventResponse[0].event_name
+                    event_code = eventResponse[0].event_code
+                    points = eventResponse[0].points
+
+                    let isClaimQuery = `select count(*) from tbl_wallet_transaction where player_id = ${playerId} and event_code = 'REG'`
+                    let isClaim = await pgConnection.executeQuery('loyalty', isClaimQuery)
+                    console.log('isClaimQuery')
+                    console.log(isClaim);
+                    if (isClaim[0].count == 0) {
+                        creditSuccess = await module.exports.walletTransaction(points, appId, playerId, null, 'CREDIT', 'SUCCESS', 'EVENT', null, event_id, event_code, event_name)
+
+                        console.log(creditSuccess);
+
+                        if (creditSuccess) {
+                            resolve(true)
+                        } else {
+                            resolve(false)
+                        }
+                    } else {
+                        resolve(false)
+                    }
+                } else {
+                    resolve(false)
+                }
+            } catch (error) {
+                console.log(error);
+                reject(error)
+            }
+        })
+
+    },
 
     testFun: (rewardId) => {
 
         return new Promise(async function (resolve, reject) {
             try {
 
-             /*    let _winQuery = {
-                    text: "select * from fn_get_player_details($1)",
-                    values: [12]
-                }
-
-                let q = 'select nz_access_token  from tbl_player_app where player_id = 12 limit 1' */
-/* 
-                let _winQuery = {
-                    text: "select * from fn_get_winner_detais($1)",
+                /*    let _winQuery = {
+                       text: "select * from fn_get_player_details($1)",
+                       values: [12]
+                   }
+   
+                   let q = 'select nz_access_token  from tbl_player_app where player_id = 12 limit 1' */
+                /* 
+                                let _winQuery = {
+                                    text: "select * from fn_get_winner_detais($1)",
+                                    values: [rewardId]
+                                }
+                
+                                let winResult = await pgConnection.executeQuery('loyalty', _winQuery)
+                 */
+                let _query = {
+                    text: `SELECT * FROM fn_validate_appkey($1)`,
                     values: [rewardId]
                 }
 
-                let winResult = await pgConnection.executeQuery('loyalty', _winQuery)
- */
-                let _updateQuery = {
-                    text: "update tbl_reward set statuss='DEACTIVE' where reward_id= $1",
-                    values: [rewardId]
-                }
-                let deactiveRewards = await pgConnection.executeQuery('loyalty', _updateQuery)
+
+                let deactiveRewards = await pgConnection.executeQuery('loyalty', _query)
 
 
-               // let winResult = await pgConnection.executeQuery('loyalty', q)
+                // let winResult = await pgConnection.executeQuery('loyalty', q)
 
                 console.log(deactiveRewards);
 

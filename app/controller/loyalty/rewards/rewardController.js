@@ -85,7 +85,7 @@ module.exports = {
                                 rewardsData[i].joins = 0
                             }
                         }
-
+ 
                         customResult = rewardsData
                         services.sendResponse.sendWithCode(req, res, customResult, customMsgType, "GET_SUCCESS");
 
@@ -215,11 +215,11 @@ module.exports = {
 
     getWinner: async (req, res) => {
         console.log('getWinner');
-        let _reward_id = req.body.reward_id ? parseInt(req.body.reward_id) : null;
+        let _reward_id = req.body.reward_id ? req.body.reward_id : null;
         //  let resonse = await services.commonServices.testFun(_reward_id)
 
-        services.commonServices.getRewardBuyAmt(_reward_id).then(data => {
-            res.send('asd' + data)
+        services.commonServices.registerEventClaim(_reward_id).then(data => {
+            res.send( data)
         }).catch(err => {
             res.send(err)
         })

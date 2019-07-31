@@ -72,6 +72,7 @@ module.exports = {
             }
 
             if (dbResult && dbResult[0].p_out_app_count) {
+                req.appId = dbResult[0].p_out_app_count;
                 return next();
             } else {
                 services.sendResponse.sendWithCode(req, res, null, "COMMON_MESSAGE", "INVALID_APP_SECRET_KEY");
