@@ -38,7 +38,7 @@ module.exports = {
 
         let validation = new services.validator(req.body, rules);
 
-
+ 
         if (validation.passes()) {
 
             let _app_id = req.userDetails.appId;
@@ -49,11 +49,13 @@ module.exports = {
             try {
 
                 let _query = {
-                    text: "SELECT event_id,event_code,points,event_name FROM tbl_app_events where event_code = $1 and status = 'ACTIVE'",
-                    values: [_event_code]
+                    text: "SELECT event_id,event_code,points,event_name FROM tbl_app_events where event_code = $1 and app_id = $2 and status = 'ACTIVE'",
+                    values: [_event_code, _app_id]
                 }
-
                 let dbResult = await pgConnection.executeQuery('loyalty', _query)
+
+                if (dbResult && dbResult.length > 0) {
+
                 creditPoints = dbResult[0].points
                 _event_id = dbResult[0].event_id
                 _event_name = dbResult[0].event_name 
@@ -64,6 +66,10 @@ module.exports = {
                     services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "TXN_SUCCESS");
                 } else {
                     services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "TXN_FAILED");
+                }
+
+             } else {
+                    services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "GET_FAILED");
                 }
 
             } catch (error) {
