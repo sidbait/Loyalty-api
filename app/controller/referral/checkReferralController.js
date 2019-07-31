@@ -37,7 +37,7 @@ module.exports = {
                     let referBy = await refModel.getReferByPlayer(inviteCode, null, appId);
 
                     if (referBy && referBy.playerId && referBy.appId) {
-                        
+
                         console.log('referBy.playerId => ', referBy.playerId, 'referBy.appId => ', referBy.appId);
 
                         let goals = await refModel.checkGoal(playerId, referBy.playerId, referBy.appId);
@@ -151,7 +151,7 @@ module.exports = {
     claimEventList: async function (req, res) {
 
         let _app_id = req.userDetails.appId;
-        let _player_id = req.userDetails.playerId;       
+        let _player_id = req.userDetails.playerId;
 
         if (_app_id && _player_id) {
 
@@ -179,6 +179,8 @@ module.exports = {
         if (validation.passes()) {
 
             let _goal_code = req.body.goal_code ? req.body.goal_code : null;
+            let _app_id = req.userDetails.appId;
+            let _player_id = req.userDetails.playerId;
 
             console.log('_goal_code', _goal_code);
 
@@ -187,31 +189,45 @@ module.exports = {
                 let goal = await refModel.getGoals(_player_id, _app_id, _goal_code);
 
                 if (goal && goal.length > 0) {
+
                     let referred_by = goal[0].referred_by;
                     let total_amount_earned_by_referral = await refModel.amountEarned(referred_by, _app_id, null);
 
                     console.log('total_amount_earned_by_referral ==>', total_amount_earned_by_referral);
+
                     if (total_amount_earned_by_referral <= 500) {
+
                         if (goal[0].is_goal_achieved == false) {
+
                             console.log('Goal need to achived');
 
                             if (_goal_code == 'GAMEPLAY') {
 
-                                let x = checkGamePlay(goal[0])
+                                services.sendResponse.sendWithCode(req, res, {}, customMsgType, "IN_PROCESS");
 
-                                // console.log(JSON.parse(x).data);
+                                let x = await checkGamePlay(goal[0])
+
                             } else if (_goal_code == 'DEPOSIT') {
 
-                                let x = checkDeposit(goal[0])
+                                services.sendResponse.sendWithCode(req, res, {}, customMsgType, "IN_PROCESS");
+
+                                let x = await checkDeposit(goal[0])
 
                             } else {
+
                                 console.log('new goal code ', _goal_code);
+                                services.sendResponse.sendWithCode(req, res, { err: 'Goal Code Not Found' }, customMsgType, "GET_FAILED");
                             }
 
                         } else {
+
                             console.log('no Goal to achived');
+                            services.sendResponse.sendWithCode(req, res, { err: 'no Goal to achived' }, customMsgType, "GET_FAILED");
+
                         }
-                        services.sendResponse.sendWithCode(req, res, goal, customMsgType, "GET_SUCCESS");
+
+                        // services.sendResponse.sendWithCode(req, res, goal, customMsgType, "GET_SUCCESS");
+
                     } else {
                         services.sendResponse.sendWithCode(req, res, { err: 'total_amount_earned_by_referral <= 500' }, customMsgType, "GET_FAILED");
                     }
@@ -344,12 +360,15 @@ async function checkGamePlay(myGoal) {
             let d = await rmgCall(url, body)
             console.log(JSON.parse(d));
             let x = JSON.parse(d);
+
             if (x.data && x.data.isCredited == true) {
                 // update in ref trns tbl
                 let new_reward_amount = x.data.reward_amount;
                 let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'GAMEPLAY', new_reward_amount)
                 console.log('isCredited ==>', isCredited);
             }
+
+            resolve(x)
 
         } catch (error) {
             console.log(error);
@@ -392,13 +411,18 @@ async function checkDeposit(myGoal) {
             }
 
             let d = await rmgCall(url, body)
+
             console.log(JSON.parse(d));
+
             let x = JSON.parse(d);
+
             if (x.data && x.data.isCredited == true) {
                 let new_reward_amount = x.data.reward_amount;
                 let isCredited = await refModel.updateReferrerPlayerTransaction(player_id, 'DEPOSIT', new_reward_amount)
                 console.log('isCredited ==>', isCredited);
             }
+
+            resolve(x);
 
         } catch (error) {
             console.log(error);

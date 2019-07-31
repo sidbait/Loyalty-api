@@ -291,6 +291,12 @@ module.exports = {
             message: "Transaction Failed!",
             messageCode: "TXN_FAILED",
             statusCode: 401
+        },
+        "IN_PROCESS": {
+            success: 1,
+            message: "Request is in process!",
+            messageCode: "IN_PROCESS",
+            statusCode: 200
         }
     },
     "BULKSMS_MESSAGE": {

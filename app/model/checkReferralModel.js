@@ -75,7 +75,7 @@ module.exports = {
 
             try {
 
-                _query = `select refcode from tbl_player_master where player_id = ${playerId}`;
+                let _query = `select refcode from tbl_player_master where player_id = ${playerId}`;
                 let dbResult = await pgConnection.executeQuery('loyalty', _query)
                 let refcode = dbResult[0].refcode;
 
@@ -176,24 +176,36 @@ module.exports = {
 
     getGoals: async (player_id, appId, goalCode) => {
         return new Promise(async (resolve, reject) => {
-            let _query = `select * from tbl_referrer_player_transaction where player_id =${player_id} and app_id =${appId}`;
-            if (goalCode) {
-                _query += ` and goal_code = '${goalCode}'`;
-            }
-            let dbResult = await pgConnection.executeQuery('loyalty', _query);
+            try {
 
-            resolve(dbResult);
+                let _query = `select * from tbl_referrer_player_transaction where player_id =${player_id} and app_id =${appId} and expiry_date > now()`;
+
+                if (goalCode) {
+                    _query += ` and goal_code = '${goalCode}'`;
+                }
+
+                let dbResult = await pgConnection.executeQuery('loyalty', _query);
+
+                resolve(dbResult);
+
+            } catch (error) {
+
+                reject(error)
+            }
         });
     },
 
     getMobile: async (player_id) => {
         return new Promise(async (resolve, reject) => {
+
             let _query = `select mobile_number from tbl_player_master where player_id = ${player_id}`;
 
             try {
+
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
                 resolve(dbResult[0].mobile_number);
+
             } catch (error) {
                 reject(error)
             }
@@ -202,12 +214,15 @@ module.exports = {
 
     amountEarned: async (player_id) => {
         return new Promise(async (resolve, reject) => {
+
             let _query = `select coalesce(sum(reward_amount),0) as sum from tbl_referrer_player_transaction where referred_by = ${player_id} and is_goal_achieved = true`;
 
             try {
+
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
                 resolve(dbResult[0].sum);
+
             } catch (error) {
                 reject(error)
             }
@@ -216,36 +231,57 @@ module.exports = {
 
     getReferralDetail: async (player_id) => {
         return new Promise(async (resolve, reject) => {
+
+            // let _query = `select master.mobile_number,app.app_user_name,ref_transaction.goal_code,ref_transaction.is_goal_achieved,ref_transaction.reward_amount,ref_transaction.goal_achieved_from,ref_transaction.goal_achieved_to,ref_transaction.minimum_amount,ref_transaction.is_percentage,ref_transaction.status,ref_transaction.add_date,ref_transaction.goal_achieved_date,ref_transaction.expiry_date
+            // from tbl_referrer_player_transaction ref_transaction
+            // inner join tbl_player_app app on ref_transaction.player_id = app.player_id 
+            // inner join tbl_player_master master on master.player_id = app.player_id 
+            // where referred_by = ${player_id}`;
+
             let _query = `select tbl_referrer_player_transaction.*,tbl_player_app.app_user_name from tbl_referrer_player_transaction
             inner join tbl_player_app on tbl_referrer_player_transaction.player_id = tbl_player_app.player_id where referred_by = ${player_id}`;
 
+
             try {
+
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
                 resolve(dbResult);
+
             } catch (error) {
-                reject(error)
+
+                reject(error);
             }
         });
     },
 
     updateReferrerPlayerTransaction: async (player_id, goal_code, reward_amount) => {
         return new Promise(async (resolve, reject) => {
+
             let _query;
 
             if (reward_amount) {
-                _query = `update tbl_referrer_player_transaction set is_goal_achieved = true,reward_amount = ${reward_amount} where player_id = ${player_id} and goal_code = '${goal_code}' and is_goal_achieved = false RETURNING player_id`;
+
+                _query = `update tbl_referrer_player_transaction set is_goal_achieved = true, goal_achieved_date=now(),reward_amount = ${reward_amount} where player_id = ${player_id} and goal_code = '${goal_code}' and is_goal_achieved = false RETURNING player_id`;
+
             } else {
-                _query = `update tbl_referrer_player_transaction set is_goal_achieved = true where player_id = ${player_id} and goal_code = '${goal_code}' and is_goal_achieved = false RETURNING player_id`;
+
+                _query = `update tbl_referrer_player_transaction set is_goal_achieved = true, goal_achieved_date=now() where player_id = ${player_id} and goal_code = '${goal_code}' and is_goal_achieved = false RETURNING player_id`;
+
             }
 
             try {
+
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
+
                 if (dbResult && dbResult.length > 0) {
+
                     resolve(true);
+
                 } else resolve(false);
 
             } catch (error) {
+
                 console.log(error);
 
                 reject(false);
