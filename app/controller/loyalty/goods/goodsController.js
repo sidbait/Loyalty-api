@@ -8,9 +8,12 @@ module.exports = {
 
 
     getAll: async function (req, res) {
+
+        let _goods_id = req.body.goods_id ? parseInt(req.body.goods_id) : null;
+
         let _query = {
-            text: "SELECT * from fn_get_goods()",
-            values: []
+            text: "SELECT * from fn_get_goods($1)",
+            values: [_goods_id]
         }
 
         try {
