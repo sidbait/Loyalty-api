@@ -73,6 +73,9 @@ module.exports = {
                 }
 
             } catch (error) {
+
+                console.log(error);
+                
                 services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
             }
 
