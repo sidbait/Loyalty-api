@@ -45,6 +45,8 @@ module.exports = {
             let _player_id = req.userDetails.playerId;
             let _event_code = req.body.event_code ? req.body.event_code : null;
             let _event_id, _event_name, creditPoints, creditSuccess;
+            console.log("Event Body");
+            console.log(req.body);
 
             try {
 
