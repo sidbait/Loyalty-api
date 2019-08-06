@@ -43,8 +43,8 @@ module.exports = {
         return new Promise(async function (resolve, reject) {
             try {
                 let _query = {
-                    text: `SELECT player_id FROM tbl_player_app WHERE nz_access_token = $1 and app_id = $2`,
-                    values: [token, appId]
+                    text: `SELECT player_id FROM tbl_player_app WHERE nz_access_token = $1`,
+                    values: [token]
                 }
 
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
@@ -59,6 +59,9 @@ module.exports = {
                 }
 
             } catch (error) {
+                console.log('getPlayerIdByToken');
+                console.log(error);
+                
                 reject(error)
             }
 
