@@ -1,6 +1,7 @@
 
 const pgConnection = require('../model/pgConnection');
 var uniqid = require('uniqid');
+var rp = require('request-promise');
 
 module.exports = {
 
@@ -43,8 +44,8 @@ module.exports = {
         return new Promise(async function (resolve, reject) {
             try {
                 let _query = {
-                    text: `SELECT player_id FROM tbl_player_app WHERE nz_access_token = $1`,
-                    values: [token]
+                    text: `SELECT player_id FROM tbl_player_app WHERE nz_access_token = $1 and app_id = $2`,
+                    values: [token, appId]
                 }
 
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
@@ -61,7 +62,7 @@ module.exports = {
             } catch (error) {
                 console.log('getPlayerIdByToken');
                 console.log(error);
-                
+
                 reject(error)
             }
 
@@ -247,7 +248,7 @@ module.exports = {
         return new Promise(async function (resolve, reject) {
             try {
                 let _query = {
-                    text: `select count(*) from tbl_goods_bought where goods_id = $1 and txn_date::date = now()::date`,
+                    text: `select * from fn_goods_left_sale($1)`,
                     values: [goodsId]
                 }
 
@@ -257,10 +258,37 @@ module.exports = {
 
                 if (dbResult && dbResult.length > 0) {
 
-                    resolve(parseInt(dbResult[0].count));
+                    resolve(dbResult[0].p_out_is_sale);
                 }
                 else {
-                    resolve(0);
+                    resolve(false);
+                }
+
+            } catch (error) {
+                reject(error)
+            }
+
+        });
+    },
+
+    getMaxSalePerUser: (goodsId,playerId) => {
+        return new Promise(async function (resolve, reject) {
+            try {
+                let _query = {
+                    text: `select * from fn_goods_max_sale_user($1,$2)`,
+                    values: [goodsId, playerId]
+                }
+
+                let dbResult = await pgConnection.executeQuery('loyalty', _query);
+
+                console.log('getLeftSaleGoods', dbResult);
+
+                if (dbResult && dbResult.length > 0) {
+
+                    resolve(dbResult[0].p_out_is_sale);
+                }
+                else {
+                    resolve(false);
                 }
 
             } catch (error) {
@@ -294,13 +322,10 @@ module.exports = {
     otpNumber() {
 
         var text = "";
-
         var possible = "0123456789";
 
         for (var i = 0; i < 4; i++) {
-
-            text += possible.charAt(Math.floor(Math.random() * possible.length));
-
+            text += possible.charAt(Math.floor(Math.random() * possible.length)).toString();
         }
 
         return text;
@@ -452,6 +477,43 @@ module.exports = {
             }
         })
 
+    },
+
+    sendSMS: (msg) => {
+
+        var options = {
+            method: 'GET',
+            url: 'http://203.115.112.8/CommonMTURLAllOperator/Bigpesa.aspx?id=nazara&pwd=nazara063&msisdn=918600366639&msg='+ msg ,//'http://203.115.112.8/CommonMTURLAllOperator/NextWVMtmd.aspx',
+           /*  qs:
+            {
+                id: 'ntwvmd',
+                pwd: 'ntwvmd2105',
+                msisdn: '918600366639',
+                msg: msg
+            }, */
+          /*   headers:
+            {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            } */
+        };
+
+        console.log('sendSMS', options);
+        
+
+        return new Promise(async function (resolve, reject) {
+            rp(options)
+                .then(function (data) {
+                    // POST succeeded...
+                    console.log('POST succeeded...', data);
+                    resolve(data)
+
+                })
+                .catch(function (err) {
+                    // POST failed...
+                    console.log('POST failed...');
+                    reject(err)
+                });
+        });
     },
 
     testFun: (rewardId) => {
