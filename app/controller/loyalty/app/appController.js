@@ -99,11 +99,31 @@ module.exports = {
                                 checkReferralController.onRegistration(_player_id, _app_id, inviteCode);
                             }
 
+                        } else if (_response == 'USER_APP_REGISTERD') {
+
+                            let tokenParam = {
+                                playerId: _player_id,
+                                appId: _app_id
+                            }
+
+                            nz_access_token = jwtToken.generateToken(tokenParam);
+
+                            let updateTokenQuery = `update tbl_player_app set nz_access_token = '${nz_access_token}' where  player_app_id = ${_player_app_id} returning *`;
+
+                            let updateResult = await pgConnection.executeQuery('loyalty', updateTokenQuery)
+
+                            if (updateResult && updateResult.length > 0) {
+
+                                customResponse.accessToken = nz_access_token
+                                customResponse.playerId = _player_id
+                                services.sendResponse.sendWithCode(req, res, customResponse, customRegMsgType, "USER_REGISTERED_SUCCESS");
+                            }
+
                         } else {
 
                             let _tokenQuery = {
-                                text: "select nz_access_token from tbl_player_app where player_id = $1 limit 1",
-                                values: [tempRes[1]]
+                                text: "select nz_access_token from tbl_player_app where player_id = $1 and app_id = $2 limit 1",
+                                values: [tempRes[1], _app_id]
                             }
 
                             let tokenResult = await pgConnection.executeQuery('loyalty', _tokenQuery)
@@ -212,14 +232,16 @@ module.exports = {
 
                         }
 
-
-
                         let otpQuery = {
                             text: "select * from fn_generate_otp($1,$2,$3)",
                             values: [_player_id, _sms_id, _otp_number]
                         }
 
                         let otpResult = await pgConnection.executeQuery('loyalty', otpQuery)
+
+                        let msg = "Enter OTP " + _otp_number + " for Loyalty KYC and You are one step away from winning real cash!! Click https://bigpesa.in to earn real cash."
+
+                        services.commonServices.sendSMS(msg)
 
                         services.sendResponse.sendWithCode(req, res, otpResult[0], customMsgType, "GET_SUCCESS");
 

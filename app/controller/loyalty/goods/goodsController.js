@@ -60,61 +60,70 @@ module.exports = {
 
             if (_player_id) {
 
-                try {
-                    walletBal = await services.commonServices.getWalletBalance(_player_id)
-                    goodsBuyAmt = await services.commonServices.getGoodsBuyAmt(_goods_id)
-                } catch (error) {
-                    walletBal = 0
-                    goodsBuyAmt = null
-                }
+                let _is_sale = await services.commonServices.getLeftSaleGoods(_goods_id)
+                let _is_sale_per_user = await services.commonServices.getMaxSalePerUser(_goods_id,_player_id)
+                if (_is_sale && _is_sale_per_user) {
 
-                if (goodsBuyAmt > 0) {
-
-                    if (walletBal >= goodsBuyAmt) {
-
-                        let _walletBal = await services.commonServices.getWalletBalance(_player_id)
-                        let debitSuccess;
-
-                        console.log('player_id', typeof _player_id, _player_id);
-                        console.log('player_id', typeof _goods_id, _goods_id);
-
-                        try {
-                            debitSuccess = await services.commonServices.walletTransaction(goodsBuyAmt, _app_id, _player_id, null, 'DEBIT', 'SUCCESS', 'GOODS', _goods_id)
-                        } catch (error) {
-                            console.log(error);
-                            debitSuccess = false
-                        }
-
-                        console.log('debitSuccess', debitSuccess);
-
-                        if (debitSuccess) {
-                            _ticket_code = services.commonServices.randomString(10)
-
-                            let _query = {
-                                text: "SELECT * from fn_buy_goods($1,$2,$3)",
-                                values: [_player_id, _goods_id, 'ACTIVE']
-                            }
-
-                            let dbResult = await pgConnection.executeQuery('loyalty', _query)
-                            console.log('fn_buy_goods', dbResult);
-                            // dbResultArr.push(dbResult[0])
-
-                            if (dbResult && dbResult.length > 0) {
-                                services.sendResponse.sendWithCode(req, res, dbResult[0], customMsgType, "GET_SUCCESS");
-
-                            } else {
-                                services.sendResponse.sendWithCode(req, res, '', customMsgType, "GET_FAILED");
-                            }
-
-                        }
-
-                    } else {
-                        let customResponse = { np_balance: walletBal }
-                        services.sendResponse.sendWithCode(req, res, customResponse, customMsgTypeCM, "INSUFFICIENT_BALANCE");
+                    try {
+                        walletBal = await services.commonServices.getWalletBalance(_player_id)
+                        goodsBuyAmt = await services.commonServices.getGoodsBuyAmt(_goods_id)
+                    } catch (error) {
+                        walletBal = 0
+                        goodsBuyAmt = null
                     }
+
+                    if (goodsBuyAmt > 0) {
+
+                        if (walletBal >= goodsBuyAmt) {
+
+                            let _walletBal = await services.commonServices.getWalletBalance(_player_id)
+                            let debitSuccess;
+
+                            console.log('player_id', typeof _player_id, _player_id);
+                            console.log('player_id', typeof _goods_id, _goods_id);
+
+                            try {
+                                debitSuccess = await services.commonServices.walletTransaction(goodsBuyAmt, _app_id, _player_id, null, 'DEBIT', 'SUCCESS', 'GOODS', _goods_id)
+                            } catch (error) {
+                                console.log(error);
+                                debitSuccess = false
+                            }
+
+                            console.log('debitSuccess', debitSuccess);
+
+                            if (debitSuccess) {
+                                _ticket_code = services.commonServices.randomString(10)
+
+                                let _query = {
+                                    text: "SELECT * from fn_buy_goods($1,$2,$3)",
+                                    values: [_player_id, _goods_id, 'ACTIVE']
+                                }
+
+                                let dbResult = await pgConnection.executeQuery('loyalty', _query)
+                                console.log('fn_buy_goods', dbResult);
+                                // dbResultArr.push(dbResult[0])
+
+                                if (dbResult && dbResult.length > 0) {
+                                    services.sendResponse.sendWithCode(req, res, dbResult[0], customMsgType, "GET_SUCCESS");
+
+                                } else {
+                                    services.sendResponse.sendWithCode(req, res, '', customMsgType, "GET_FAILED");
+                                }
+
+                            }
+
+                        } else {
+                            let customResponse = { np_balance: walletBal }
+                            services.sendResponse.sendWithCode(req, res, customResponse, customMsgTypeCM, "INSUFFICIENT_BALANCE");
+                        }
+                    } else {
+                        services.sendResponse.sendWithCode(req, res, null, customMsgTypeCM, "CONTEST_ENDED");
+                    }
+
                 } else {
-                    services.sendResponse.sendWithCode(req, res, null, customMsgTypeCM, "CONTEST_ENDED");
+                    services.sendResponse.sendWithCode(req, res, 'Max Sale Limit per Day Exceeded', customMsgType, "GET_FAILED");
                 }
+
             } else {
                 services.sendResponse.sendWithCode(req, res, 'Invalid Access Token', customMsgTypeCM, "INVALID_ACCESS_TOKEN");
             }
