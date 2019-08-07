@@ -56,10 +56,10 @@ module.exports = {
     "LOGIN_MESSAGE": {
 
         "USER_ALREADY_REGISTERD": {
-            success: 0,
-            message: "User Alerady Registered",
+            success: 1,
+            message: "User Already Registered",
             messageCode: "ALREADY_REGISTERD",
-            statusCode: 401
+            statusCode: 200
         },
         "USER_REGISTERED_SUCCESS": {
             success: 1,
@@ -324,6 +324,24 @@ module.exports = {
             success: 1,
             message: "CONTEST_UPDATED",
             messageCode: "CONTEST_UPDATED",
+            statusCode: 200
+        },
+        "AlREADY_CLAIM": {
+            success: 0,
+            message: "Reward is Already claimed",
+            messageCode: "AlREADY_CLAIM",
+            statusCode: 401
+        },
+        "CLAIM_FAILED": {
+            success: 0,
+            message: "Something went wrong! Please reclaim",
+            messageCode: "CLAIM_FAILED",
+            statusCode: 401
+        },
+        "CLAIM_SUCCESS": {
+            success: 1,
+            message: "Reward Claimed Successfully",
+            messageCode: "CLAIM_SUCCESS",
             statusCode: 200
         },
     },
