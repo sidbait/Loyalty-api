@@ -560,6 +560,6 @@ module.exports = {
             }
         } else {
             callback([]);
-        }
+        } 
     }
 }
