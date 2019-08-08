@@ -479,11 +479,11 @@ module.exports = {
 
     },
 
-    sendSMS: (msg) => {
+    sendSMS: (msg,mobile) => {
 
         var options = {
             method: 'GET',
-            url: 'http://203.115.112.8/CommonMTURLAllOperator/Bigpesa.aspx?id=nazara&pwd=nazara063&msisdn=918600366639&msg='+ msg ,//'http://203.115.112.8/CommonMTURLAllOperator/NextWVMtmd.aspx',
+            url: `http://203.115.112.8/CommonMTURLAllOperator/Bigpesa.aspx?id=nazara&pwd=nazara063&msisdn=${mobile}&msg=${msg}` ,//'http://203.115.112.8/CommonMTURLAllOperator/NextWVMtmd.aspx',
            /*  qs:
             {
                 id: 'ntwvmd',

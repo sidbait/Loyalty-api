@@ -241,7 +241,7 @@ module.exports = {
 
                         let msg = "Enter OTP " + _otp_number + " for Loyalty KYC and You are one step away from winning real cash!! Click https://bigpesa.in to earn real cash."
 
-                        services.commonServices.sendSMS(msg)
+                        services.commonServices.sendSMS(msg,_mobile_number)
 
                         services.sendResponse.sendWithCode(req, res, otpResult[0], customMsgType, "GET_SUCCESS");
 
