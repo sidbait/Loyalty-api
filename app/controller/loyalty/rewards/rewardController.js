@@ -85,7 +85,7 @@ module.exports = {
                                 rewardsData[i].joins = 0
                             }
                         }
- 
+
                         customResult = rewardsData
                         services.sendResponse.sendWithCode(req, res, customResult, customMsgType, "GET_SUCCESS");
 
@@ -213,13 +213,109 @@ module.exports = {
         }
     },
 
+    claimRewards: async (req, res) => {
+        let rules = {
+            "rw_id": 'required',
+        };
+
+        let validation = new services.validator(req.body, rules);
+
+        if (validation.passes()) {
+            let _app_id;
+            let _player_id;
+            let _rw_id = req.body.rw_id ? parseInt(req.body.rw_id) : null;
+            let _reward_id;
+            let _rm_id;
+            let _win_amount;
+            let _reward_type;
+            /*  let _ticket_code = req.body.ticket_code ? req.body.ticket_code : null;
+             let _txn_status = req.body.txn_status ? req.body.txn_status.toUpperCase() : 'ACTIVE';
+             let _count = req.body.count ? req.body.count : 1;
+ 
+             let walletBal;
+             let rewardBuyAmt; */
+
+            try {
+                _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
+                _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
+
+            } catch (error) {
+                _app_id = null;
+                _player_id = null;
+            }
+
+            if (_player_id) {
+
+                try {
+
+
+
+                    let _query = {
+                        text: "SELECT * from fn_get_reward_win_amt($1,$2)",
+                        values: [_player_id, _rw_id]
+                    }
+
+                    let dbResult = await pgConnection.executeQuery('loyalty', _query)
+                    console.log("kk", dbResult[0].data.length, dbResult[0].data[0].reward_id);
+                    if (dbResult && dbResult.length > 0 && dbResult[0].data && dbResult[0].data.length > 0 && dbResult[0].data[0].reward_id) {
+                        console.log("Hello", dbResult[0].data[0].length);
+                    }
+                    /*   res.send(dbResult[0].data[0]) */
+
+                    if (dbResult && dbResult.length > 0 && dbResult[0].data && dbResult[0].data.length > 0 && dbResult[0].data[0].reward_id) {
+
+                        _reward_id = dbResult[0].data[0].reward_id ? parseInt(dbResult[0].data[0].reward_id) : null
+                        _win_amount = dbResult[0].data[0].win_amount ? parseInt(dbResult[0].data[0].win_amount) : null
+                        _reward_type = dbResult[0].data[0].reward_type
+
+
+                        if (_reward_type.toUpperCase() == 'COIN') {
+                            creditSuccess = await services.commonServices.walletTransaction(_win_amount, _app_id, _player_id, _reward_id, 'CREDIT', 'SUCCESS', 'REWARD', null)
+                            if (creditSuccess) {
+
+                                let _updateQuery = {
+                                    text: "update tbl_reward_winners set is_claimed = true, claim_date = now() where rw_id = $1",
+                                    values: [_rw_id]
+                                }
+
+                                let updateResult = await pgConnection.executeQuery('loyalty', _updateQuery)
+
+                                services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_SUCCESS");
+                            } else {
+                                services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_FAILED");
+                            }
+                        } else if(_reward_type.toUpperCase() == 'CASH'){
+                            console.log('Paytm Cash ' + _win_amount);
+                        }
+
+                    }
+                    else {
+                        services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "AlREADY_CLAIM");
+                    }
+
+                } catch (error) {
+                    services.sendResponse.sendWithCode(req, res, error, customMsgType, "GET_FAILED");
+                }
+
+            } else {
+                services.sendResponse.sendWithCode(req, res, 'Invalid Access Token', customMsgTypeCM, "INVALID_ACCESS_TOKEN");
+            }
+
+        } else {
+            services.sendResponse.sendWithCode(req, res, validation.errors.errors, "COMMON_MESSAGE", "VALIDATION_FAILED");
+        }
+
+
+
+    },
+
     getWinner: async (req, res) => {
         console.log('getWinner');
         let _reward_id = req.body.reward_id ? req.body.reward_id : null;
         //  let resonse = await services.commonServices.testFun(_reward_id)
 
         services.commonServices.registerEventClaim(_reward_id).then(data => {
-            res.send( data)
+            res.send(data)
         }).catch(err => {
             res.send(err)
         })
@@ -438,7 +534,7 @@ module.exports = {
 
                     } else if (remainingSeconds < -20) {
 
-                        
+
                         rewardsData[i].show_reward = false
                         let _updateQuery = {
                             text: "update tbl_reward set status='DEACTIVE' where reward_id= $1",
