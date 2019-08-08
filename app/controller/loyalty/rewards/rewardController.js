@@ -175,8 +175,8 @@ module.exports = {
                                 _ticket_code = services.commonServices.randomString(10)
 
                                 let _query = {
-                                    text: "SELECT * from fn_reward_participate($1,$2,$3,$4)",
-                                    values: [_player_id, _reward_id, _ticket_code, _txn_status]
+                                    text: "SELECT * from fn_reward_participate($1,$2,$3,$4,$5)",
+                                    values: [_player_id, _reward_id, _ticket_code, _txn_status,_app_id]
                                 }
 
                                 let dbResult = await pgConnection.executeQuery('loyalty', _query)
@@ -256,10 +256,10 @@ module.exports = {
                     }
 
                     let dbResult = await pgConnection.executeQuery('loyalty', _query)
-                    console.log("kk", dbResult[0].data.length, dbResult[0].data[0].reward_id);
-                    if (dbResult && dbResult.length > 0 && dbResult[0].data && dbResult[0].data.length > 0 && dbResult[0].data[0].reward_id) {
-                        console.log("Hello", dbResult[0].data[0].length);
-                    }
+                    console.log("kk", dbResult[0].data.length, dbResult[0].data[0]);
+                    /*  if (dbResult && dbResult.length > 0 && dbResult[0].data && dbResult[0].data.length > 0 && dbResult[0].data[0].reward_id) {
+                         console.log("Hello", dbResult[0].data[0].length);
+                     } */
                     /*   res.send(dbResult[0].data[0]) */
 
                     if (dbResult && dbResult.length > 0 && dbResult[0].data && dbResult[0].data.length > 0 && dbResult[0].data[0].reward_id) {
@@ -270,7 +270,7 @@ module.exports = {
 
 
                         if (_reward_type.toUpperCase() == 'COIN') {
-                            creditSuccess = await services.commonServices.walletTransaction(_win_amount, _app_id, _player_id, _reward_id, 'CREDIT', 'SUCCESS', 'REWARD', null)
+                            let creditSuccess = await services.commonServices.walletTransaction(_win_amount, _app_id, _player_id, _reward_id, 'CREDIT', 'SUCCESS', 'REWARD', null)
                             if (creditSuccess) {
 
                                 let _updateQuery = {
@@ -284,8 +284,43 @@ module.exports = {
                             } else {
                                 services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_FAILED");
                             }
-                        } else if(_reward_type.toUpperCase() == 'CASH'){
-                            console.log('Paytm Cash ' + _win_amount);
+                        } else if (_reward_type.toUpperCase() == 'CASH') {
+
+
+                            try {
+                                let reedeemSuccess = await services.commonServices.reedeemCash(_rw_id, req.headers["access-token"], req.headers["x-naz-app-key"])
+
+                                if (reedeemSuccess.Success) {
+
+                                    let _updateQuery = {
+                                        text: "update tbl_reward_winners set is_claimed = true, claim_date = now() where rw_id = $1",
+                                        values: [_rw_id]
+                                    }
+
+                                    let updateResult = await pgConnection.executeQuery('loyalty', _updateQuery)
+
+                                    services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_SUCCESS");
+
+                                } else {
+                                    services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_FAILED");
+                                }
+
+                            } catch (error) {
+
+                                console.log('reedeemCash ERr', error);
+                                services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_FAILED");
+
+                            }
+
+                        } else {
+                            let _updateQuery = {
+                                text: "update tbl_reward_winners set status = 'PROCESSING' where rw_id = $1",
+                                values: [_rw_id]
+                            }
+
+                            let updateResult = await pgConnection.executeQuery('loyalty', _updateQuery)
+
+                            services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_PROCESS");
                         }
 
                     }
@@ -294,6 +329,8 @@ module.exports = {
                     }
 
                 } catch (error) {
+                    console.log(error);
+
                     services.sendResponse.sendWithCode(req, res, error, customMsgType, "GET_FAILED");
                 }
 
@@ -560,6 +597,6 @@ module.exports = {
             }
         } else {
             callback([]);
-        } 
+        }
     }
 }

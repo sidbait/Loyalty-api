@@ -8,6 +8,10 @@
     "level": "info",
     "filename": "loyalty.log"
   },
+  "withdrawAPI":{
+    "endPoint": "http://13.235.179.220:4005/app/v1/withdraw/",
+    "endPoint2": "localhost:4005/app/v1/withdraw/"
+  },
   "debug_db_result": true,
   "db_connectionString": {
     "pg": {
@@ -16,6 +20,17 @@
         "password": "YP8mhNqxaZBbDtjQrS6m",
         "database": "loyalty",
         "host": "192.168.5.129",
+        "port": 5432,
+        "ssl": true,
+        "max": 50,
+        "min": 10,
+        "idleTimeoutMillis": 500000
+      },
+      "pg_loyalty1": {
+        "user": "rmg_admin",
+        "password": "zw6aBw6GXrjV8MSURYfw",
+        "database": "np_rmg",
+        "host": "13.235.179.220",
         "port": 5432,
         "ssl": true,
         "max": 50,

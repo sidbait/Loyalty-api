@@ -8,6 +8,10 @@
     "level": "info",
     "filename": "np_rmg.log"
   },
+  "withdrawAPI":{
+    "endPoint2": "http://13.235.179.220:4005/app/v1/withdraw/",
+    "endPoint": "localhost:4005/app/v1/withdraw/"
+  },
   "debug_db_result": true,
   "db_connectionString": {
     "pg": {

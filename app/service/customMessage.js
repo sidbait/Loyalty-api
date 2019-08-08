@@ -344,6 +344,12 @@ module.exports = {
             messageCode: "CLAIM_SUCCESS",
             statusCode: 200
         },
+        "CLAIM_PROCESS": {
+            success: 0,
+            message: "Your Claim is in Processing",
+            messageCode: "CLAIM_PROCESS",
+            statusCode: 401
+        },
     },
     "Rebuild_Cache": {
         "on_failed": {
