@@ -1,5 +1,6 @@
 
 const pgConnection = require('../model/pgConnection');
+const config = require('config');
 var uniqid = require('uniqid');
 var rp = require('request-promise');
 
@@ -271,7 +272,7 @@ module.exports = {
         });
     },
 
-    getMaxSalePerUser: (goodsId,playerId) => {
+    getMaxSalePerUser: (goodsId, playerId) => {
         return new Promise(async function (resolve, reject) {
             try {
                 let _query = {
@@ -479,26 +480,61 @@ module.exports = {
 
     },
 
-    sendSMS: (msg,mobile) => {
+    reedeemCash: (rwid, access_token, api_key) => {
+        console.log('reedeemCash Start');
+        let options = {
+            method: 'POST',
+            url: config.withdrawAPI.endPoint + 'withdrawloyality',
+            headers:
+            {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'access-token': access_token,
+                'x-naz-app-key' : api_key
+            },
+            form:{
+                rwid :rwid
+            }
+        };
+
+        console.log('reedeemCash options', options);
+
+
+        return new Promise(async function (resolve, reject) {
+            rp(options)
+                .then(function (data) {
+                    // POST succeeded...
+                    console.log('POST succeeded...', data);
+                    resolve(data)
+
+                })
+                .catch(function (err) {
+                    // POST failed...
+                    console.log('POST failed...');
+                    reject(err)
+                });
+        });
+    },
+
+    sendSMS: (msg, mobile) => {
 
         var options = {
             method: 'GET',
-            url: `http://203.115.112.8/CommonMTURLAllOperator/Bigpesa.aspx?id=nazara&pwd=nazara063&msisdn=${mobile}&msg=${msg}` ,//'http://203.115.112.8/CommonMTURLAllOperator/NextWVMtmd.aspx',
-           /*  qs:
-            {
-                id: 'ntwvmd',
-                pwd: 'ntwvmd2105',
-                msisdn: '918600366639',
-                msg: msg
-            }, */
-          /*   headers:
-            {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            } */
+            url: `http://203.115.112.8/CommonMTURLAllOperator/Bigpesa.aspx?id=nazara&pwd=nazara063&msisdn=${mobile}&msg=${msg}`,//'http://203.115.112.8/CommonMTURLAllOperator/NextWVMtmd.aspx',
+            /*  qs:
+             {
+                 id: 'ntwvmd',
+                 pwd: 'ntwvmd2105',
+                 msisdn: '918600366639',
+                 msg: msg
+             }, */
+            /*   headers:
+              {
+                  'Content-Type': 'application/x-www-form-urlencoded'
+              } */
         };
 
         console.log('sendSMS', options);
-        
+
 
         return new Promise(async function (resolve, reject) {
             rp(options)
