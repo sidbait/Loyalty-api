@@ -61,7 +61,7 @@ module.exports = {
             if (_player_id) {
 
                 let _is_sale = await services.commonServices.getLeftSaleGoods(_goods_id)
-                let _is_sale_per_user = await services.commonServices.getMaxSalePerUser(_goods_id,_player_id)
+                let _is_sale_per_user = await services.commonServices.getMaxSalePerUser(_goods_id, _player_id)
                 if (_is_sale && _is_sale_per_user) {
 
                     try {
@@ -92,24 +92,41 @@ module.exports = {
                             console.log('debitSuccess', debitSuccess);
 
                             if (debitSuccess) {
-                                _ticket_code = services.commonServices.randomString(10)
 
-                                let _query = {
-                                    text: "SELECT * from fn_buy_goods($1,$2,$3)",
-                                    values: [_player_id, _goods_id, 'ACTIVE']
-                                }
 
-                                let dbResult = await pgConnection.executeQuery('loyalty', _query)
-                                console.log('fn_buy_goods', dbResult);
-                                // dbResultArr.push(dbResult[0])
+                                let reedeemSuccess = await services.commonServices.reedeemCash(_rw_id, req.headers["access-token"], req.headers["x-naz-app-key"],'goods')
 
-                                if (dbResult && dbResult.length > 0) {
-                                    services.sendResponse.sendWithCode(req, res, dbResult[0], customMsgType, "GET_SUCCESS");
+                                if (reedeemSuccess.Success) {
+
+                                    let _query = {
+                                        text: "SELECT * from fn_buy_goods($1,$2,$3,$4)",
+                                        values: [_player_id, _goods_id, 'ACTIVE',_app_id]
+                                    }
+
+                                    let dbResult = await pgConnection.executeQuery('loyalty', _query)
+                                    console.log('fn_buy_goods', dbResult);
+                                    // dbResultArr.push(dbResult[0])
+
+                                    if (dbResult && dbResult.length > 0) {
+                                        services.sendResponse.sendWithCode(req, res, dbResult[0], customMsgType, "GET_SUCCESS");
+                                    } else {
+                                        services.sendResponse.sendWithCode(req, res, '', 'COMMON_MESSAGE', "ERROR");
+                                    }
 
                                 } else {
-                                    services.sendResponse.sendWithCode(req, res, '', customMsgType, "GET_FAILED");
+                                    let refundSuccess;
+                                    try {
+                                        refundSuccess = await services.commonServices.walletTransaction(goodsBuyAmt, _app_id, _player_id, null, 'REFUND', 'SUCCESS', 'GOODS', _goods_id)
+                                    } catch (error) {
+                                        console.log(error);
+                                        refundSuccess = false
+                                    }
+
+                                    services.sendResponse.sendWithCode(req, res, '', 'COMMON_MESSAGE', "ERROR");
                                 }
 
+                            } else {
+                                services.sendResponse.sendWithCode(req, res, '', 'COMMON_MESSAGE', "ERROR");
                             }
 
                         } else {

@@ -480,7 +480,7 @@ module.exports = {
 
     },
 
-    reedeemCash: (rwid, access_token, api_key) => {
+    reedeemCash: (rwid, access_token, api_key,type) => {
         console.log('reedeemCash Start');
         let options = {
             method: 'POST',
@@ -492,7 +492,8 @@ module.exports = {
                 'x-naz-app-key' : api_key
             },
             form:{
-                rwid :rwid
+                rwid :(type == 'rewards') ? rwid : null,
+                goods_id: (type == 'goods') ? rwid : null
             }
         };
 

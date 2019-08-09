@@ -288,7 +288,7 @@ module.exports = {
 
 
                             try {
-                                let reedeemSuccess = await services.commonServices.reedeemCash(_rw_id, req.headers["access-token"], req.headers["x-naz-app-key"])
+                                let reedeemSuccess = await services.commonServices.reedeemCash(_rw_id, req.headers["access-token"], req.headers["x-naz-app-key"], 'rewards')
 
                                 if (reedeemSuccess.Success) {
 
