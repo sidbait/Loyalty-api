@@ -8,7 +8,7 @@ bodyParser = require('body-parser');
 
 path = require('path');
 multer = require('multer');
-
+var socketFunctions = require('./app/service/socketFunction');
 //code require
 config = require('config');
 router = require('./app/routes');
@@ -96,7 +96,7 @@ MongoClient.connect(config.db_connectionString.mongo.centralizeddb, { useNewUrlP
             console.log('Listening on port:' + config.app.port);
             console.log('Welcome to LOYALTY API');
             console.log('NODE_ENV', process.env.NODE_ENV);
-
+            socketFunctions.sendSockets(io); 
         });
     }
 });
