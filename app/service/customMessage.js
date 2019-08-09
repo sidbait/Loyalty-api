@@ -350,6 +350,12 @@ module.exports = {
             messageCode: "CLAIM_PROCESS",
             statusCode: 401
         },
+        "MAX_LIMIT": {
+            success: 0,
+            message: "Max Sale Limit per Day Exceeded",
+            messageCode: "MAX_LIMIT",
+            statusCode: 401
+        },
     },
     "Rebuild_Cache": {
         "on_failed": {

@@ -494,7 +494,8 @@ module.exports = {
             form:{
                 rwid :(type == 'rewards') ? rwid : null,
                 goods_id: (type == 'goods') ? rwid : null
-            }
+            },
+            json: true
         };
 
         console.log('reedeemCash options', options);
