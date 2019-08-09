@@ -20,13 +20,13 @@ const goodsRoutes = require('../routes/loyalty/goods/goodsRoute');
 const eventRoutes = require('../routes/loyalty/event/eventRoutes');
 const checkReferralRoutes = require('../routes/referral/checkReferralRoutes');
 
-var io = require('socket.io').listen(4444);
+/* var io = require('socket.io').listen(4444); */
 var socketFunctions = require('../service/socketFunction');
-io.set('origins', '*:*');
+/* io.set('origins', '*:*');
 io.on('connection', function(socket){
     console.log('a user connected');
 });
-
+ */
 apiRoutes.get('/', function (req, res) {
     sendResponse.sendWithCode(req, res, null, "COMMON_MESSAGE", "WELCOME");
 });

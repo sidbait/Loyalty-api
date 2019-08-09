@@ -8,7 +8,12 @@ bodyParser = require('body-parser');
 
 path = require('path');
 multer = require('multer');
+io = require('socket.io').listen(4444);
 var socketFunctions = require('./app/service/socketFunction');
+io.set('origins', '*:*');
+io.on('connection', function(socket){
+    console.log('a user connected');
+});
 //code require
 config = require('config');
 router = require('./app/routes');
