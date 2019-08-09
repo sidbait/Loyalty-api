@@ -94,8 +94,10 @@ module.exports = {
                             if (debitSuccess) {
 
 
-                                let reedeemSuccess = await services.commonServices.reedeemCash(_rw_id, req.headers["access-token"], req.headers["x-naz-app-key"],'goods')
+                                let reedeemSuccess = await services.commonServices.reedeemCash(_goods_id, req.headers["access-token"], req.headers["x-naz-app-key"],'goods')
 
+                                console.log('reedeemSuccess', typeof reedeemSuccess, reedeemSuccess.Success);
+                                
                                 if (reedeemSuccess.Success) {
 
                                     let _query = {
@@ -138,7 +140,7 @@ module.exports = {
                     }
 
                 } else {
-                    services.sendResponse.sendWithCode(req, res, 'Max Sale Limit per Day Exceeded', customMsgType, "GET_FAILED");
+                    services.sendResponse.sendWithCode(req, res, 'Max Sale Limit per Day Exceeded', 'CONTEST_MESSAGE', "MAX_LIMIT");
                 }
 
             } else {
