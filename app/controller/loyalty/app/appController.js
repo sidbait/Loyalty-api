@@ -306,7 +306,10 @@ module.exports = {
 
                         let playerResult = await pgConnection.executeQuery('loyalty', _playerQuery)
 
-                        services.sendResponse.sendWithCode(req, res, playerResult[0].data, customRegMsgType, "OTP_SUCCESS");
+                        console.log(playerResult[0].data);
+                        
+
+                        services.sendResponse.sendWithCode(req, res, playerResult[0].data[0], customRegMsgType, "OTP_SUCCESS");
 
                     } else {
                         services.sendResponse.sendWithCode(req, res, '', customRegMsgType, "INVALID_OTP");
