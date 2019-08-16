@@ -172,6 +172,7 @@ module.exports = {
             let _fcm_id = req.body.fcm_id ? req.body.fcm_id : null;
             let _app_fb_id = req.body.app_fb_id ? req.body.app_fb_id : null;
             let _app_google_id = req.body.app_google_id ? req.body.app_google_id : null;
+            let _app_hash = req.body.app_hash ? req.body.app_hash : null;
             let nz_access_token = null
 
             let inviteCode = req.body.inviteCode ? req.body.inviteCode : null;
@@ -228,18 +229,31 @@ module.exports = {
                             let updateResult = await pgConnection.executeQuery('loyalty', updateTokenQuery)
 
 
-                        } else {
+                        } else if (_response == 'USER_APP_REGISTERD') {
+
+                            let tokenParam = {
+                                playerId: _player_id,
+                                appId: _app_id
+                            }
+
+                            nz_access_token = jwtToken.generateToken(tokenParam);
+
+                            let updateTokenQuery = `update tbl_player_app set nz_access_token = '${nz_access_token}' where  player_app_id = ${_player_app_id} returning *`;
+
+                            let updateResult = await pgConnection.executeQuery('loyalty', updateTokenQuery)
 
                         }
 
                         let otpQuery = {
-                            text: "select * from fn_generate_otp($1,$2,$3)",
-                            values: [_player_id, _sms_id, _otp_number]
+                            text: "select * from fn_generate_otp($1,$2,$3,$4)",
+                            values: [_player_id, _sms_id, _otp_number,_app_id]
                         }
 
                         let otpResult = await pgConnection.executeQuery('loyalty', otpQuery)
 
-                        let msg = "Enter OTP " + _otp_number + " for Loyalty KYC and You are one step away from winning real cash!! Click https://bigpesa.in to earn real cash."
+                        let msg = "<%2523> Enter OTP " + _otp_number + " for Loyalty KYC and You are one step away from winning real cash!! Click https://bigpesa.in to earn real cash." + (_app_hash ? _app_hash : ''); 
+
+                       /*  msg = `Congratulations, Enter OTP ${_otp_number} for Loyalty KYC and you are one step away from winning Exciting Prizes. ${_app_hash ? _app_hash : ''}` */
 
                         services.commonServices.sendSMS(msg,_mobile_number)
 
@@ -289,8 +303,8 @@ module.exports = {
             if (_player_id && _app_id) {
 
                 let _query = {
-                    text: "select * from fn_otp_verify($1,$2)",
-                    values: [_player_id, _otp_pin]
+                    text: "select * from fn_otp_verify($1,$2,$3)",
+                    values: [_player_id, _otp_pin, _app_id]
                 }
 
                 try {
