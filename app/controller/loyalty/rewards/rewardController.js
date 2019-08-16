@@ -176,7 +176,7 @@ module.exports = {
 
                                 let _query = {
                                     text: "SELECT * from fn_reward_participate($1,$2,$3,$4,$5)",
-                                    values: [_player_id, _reward_id, _ticket_code, _txn_status,_app_id]
+                                    values: [_player_id, _reward_id, _ticket_code, _txn_status, _app_id]
                                 }
 
                                 let dbResult = await pgConnection.executeQuery('loyalty', _query)
@@ -356,6 +356,32 @@ module.exports = {
         }).catch(err => {
             res.send(err)
         })
+
+    },
+
+    getWinnersSummary: async (req, res) => {
+
+        let _query = {
+            text: "SELECT * from fn_get_winner_summary()",
+            values: []
+        }
+
+        try {
+            let dbResult = await pgConnection.executeQuery('loyalty', _query)
+
+            console.log('dbResult', dbResult);
+
+            if (dbResult && dbResult.length > 0 && dbResult[0].data) {
+
+                services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_SUCCESS");
+
+            } else {
+                services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_FAILED");
+            }
+        }
+        catch (error) {
+            services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
+        }
 
     },
 
