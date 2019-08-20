@@ -195,7 +195,7 @@ module.exports = {
 
                     console.log('total_amount_earned_by_referral ==>', total_amount_earned_by_referral);
 
-                    if (total_amount_earned_by_referral <= 500) {
+                    if (total_amount_earned_by_referral <= 1000) {
 
                         if (goal[0].is_goal_achieved == false) {
 
@@ -229,7 +229,7 @@ module.exports = {
                         // services.sendResponse.sendWithCode(req, res, goal, customMsgType, "GET_SUCCESS");
 
                     } else {
-                        services.sendResponse.sendWithCode(req, res, { err: 'total_amount_earned_by_referral <= 500' }, customMsgType, "GET_FAILED");
+                        services.sendResponse.sendWithCode(req, res, { err: 'total_amount_earned_by_referral <= 1000' }, customMsgType, "GET_FAILED");
                     }
 
                 } else {
@@ -295,7 +295,7 @@ async function checkRegistration(myGoal) {
             console.log('total_amount_earned_by_referral ==>', total_amount_earned_by_referral);
 
             try {
-                if (total_amount_earned_by_referral <= 500) {
+                if (total_amount_earned_by_referral <= 1000) {
                     console.log(`send reward_amount ${element.reward_amount} to referred_by ${element.referred_by}`);
                     let player_mobile = await refModel.getMobile(element.player_id);
                     let referBy_mobile = await refModel.getMobile(element.referred_by);
@@ -321,7 +321,7 @@ async function checkRegistration(myGoal) {
                     }
                 } else {
 
-                    console.log('registration >> total_amount_earned_by_referral <= 500');
+                    console.log('registration >> total_amount_earned_by_referral <= 1000');
                 }
 
             } catch (error) {
