@@ -193,7 +193,7 @@ module.exports = {
                     let referred_by = goal[0].referred_by;
                     let total_amount_earned_by_referral = await refModel.amountEarned(referred_by, _app_id, null);
 
-                    console.log('total_amount_earned_by_referral ==>', total_amount_earned_by_referral);
+                    console.log('Maximum Earning Through Referral ==>', total_amount_earned_by_referral);
 
                     if (total_amount_earned_by_referral <= 1000) {
 
@@ -229,7 +229,7 @@ module.exports = {
                         // services.sendResponse.sendWithCode(req, res, goal, customMsgType, "GET_SUCCESS");
 
                     } else {
-                        services.sendResponse.sendWithCode(req, res, { err: 'total_amount_earned_by_referral <= 1000' }, customMsgType, "GET_FAILED");
+                        services.sendResponse.sendWithCode(req, res, { err: 'Maximum Earning Through Referral <= 1000' }, customMsgType, "GET_FAILED");
                     }
 
                 } else {
@@ -321,7 +321,7 @@ async function checkRegistration(myGoal) {
                     }
                 } else {
 
-                    console.log('registration >> total_amount_earned_by_referral <= 1000');
+                    console.log('registration >> Maximum Earning Through Referral <= 1000');
                 }
 
             } catch (error) {
