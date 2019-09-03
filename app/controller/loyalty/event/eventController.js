@@ -42,8 +42,6 @@ module.exports = {
         };
 
         let validation = new services.validator(req.body, rules);
-        console.log("Event Body");
-        console.log(req.body);
 
 
         if (validation.passes()) {
@@ -62,39 +60,41 @@ module.exports = {
                 let _event_code = req.body.event_code ? req.body.event_code : null;
                 let _event_id, _event_name, creditPoints, creditSuccess;
 
-                try {
+                if (services.commonServices.checkSumValidation(req, res, [_event_code])) {
 
-                    let _query = {
-                        text: "SELECT event_id,event_code,points,event_name FROM tbl_app_events where event_code = $1 and app_id = $2 and status = 'ACTIVE'",
-                        values: [_event_code, _app_id]
-                    }
-                    let dbResult = await pgConnection.executeQuery('loyalty', _query)
+                    try {
 
-                    if (dbResult && dbResult.length > 0) {
+                        let _query = {
+                            text: "SELECT event_id,event_code,points,event_name FROM tbl_app_events where event_code = $1 and app_id = $2 and status = 'ACTIVE'",
+                            values: [_event_code, _app_id]
+                        }
+                        let dbResult = await pgConnection.executeQuery('loyalty', _query)
 
-                        creditPoints = dbResult[0].points
-                        _event_id = dbResult[0].event_id
-                        _event_name = dbResult[0].event_name
-                        console.log(dbResult[0]);
+                        if (dbResult && dbResult.length > 0) {
 
-                        creditSuccess = await services.commonServices.walletTransaction(creditPoints, _app_id, _player_id, null, 'CREDIT', 'SUCCESS', 'EVENT', null, _event_id, _event_code, _event_name)
-                        if (creditSuccess) {
-                            services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "TXN_SUCCESS");
+                            creditPoints = dbResult[0].points
+                            _event_id = dbResult[0].event_id
+                            _event_name = dbResult[0].event_name
+                            console.log(dbResult[0]);
+
+                            creditSuccess = await services.commonServices.walletTransaction(creditPoints, _app_id, _player_id, null, 'CREDIT', 'SUCCESS', 'EVENT', null, _event_id, _event_code, _event_name)
+                            if (creditSuccess) {
+                                services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "TXN_SUCCESS");
+                            } else {
+                                services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "TXN_FAILED");
+                            }
+
                         } else {
-                            services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "TXN_FAILED");
+                            services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "GET_FAILED");
                         }
 
-                    } else {
-                        services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "GET_FAILED");
+                    } catch (error) {
+                        /* console.log(error); */
+                        services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
                     }
-
-                } catch (error) {
-
-                    console.log(error);
-
-                    services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
+                } else {
+                    services.sendResponse.sendWithCode(req, res, 'Invalid Checksum', customMsgTypeCM, "INVALID_ACCESS_TOKEN");
                 }
-
             } else {
                 services.sendResponse.sendWithCode(req, res, 'Invalid Access Token', customMsgTypeCM, "INVALID_ACCESS_TOKEN");
             }

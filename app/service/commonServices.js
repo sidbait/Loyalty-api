@@ -3,8 +3,33 @@ const pgConnection = require('../model/pgConnection');
 const config = require('config');
 var uniqid = require('uniqid');
 var rp = require('request-promise');
+const md5 = require('md5');
+const sha512 = require('js-sha512');
 
 module.exports = {
+
+
+    checkSumValidation: (req, res, paramArr) => {
+
+        let param1 = paramArr.reduce((accParam, param, idx) => { return accParam + '$' + param })
+        // let param1 = _mobile_number
+        let param2 = req.headers["x-naz-app-key"]
+        console.log('##param1', param1);
+        console.log('##param2', param2);
+        let md5Checksum = md5(param1) + '|' + md5(param2);
+        console.log('##md5Checksum :', md5Checksum);
+        let sha512Checksum = sha512(md5Checksum);
+        console.log('##sha512Checksum :', sha512Checksum);
+        let checksum = req.headers["checksum"]
+        console.log('##checksum :', checksum);
+        console.log('isCheck', sha512Checksum == checksum);
+        if (sha512Checksum == checksum) {
+            return true;
+        } else {
+            return false;
+        }
+
+    },
 
     getAppId: async (appKey) => {
 
@@ -480,7 +505,7 @@ module.exports = {
 
     },
 
-    reedeemCash: (rwid, access_token, api_key,type) => {
+    reedeemCash: (rwid, access_token, api_key, type) => {
         console.log('reedeemCash Start');
         let options = {
             method: 'POST',
@@ -489,10 +514,10 @@ module.exports = {
             {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'access-token': access_token,
-                'x-naz-app-key' : api_key
+                'x-naz-app-key': api_key
             },
-            form:{
-                rwid :(type == 'rewards') ? rwid : null,
+            form: {
+                rwid: (type == 'rewards') ? rwid : null,
                 goods_id: (type == 'goods') ? rwid : null
             },
             json: true
