@@ -44,12 +44,6 @@ module.exports = {
 
     validateAppSecret: async (req, res, next) => {
 
-        console.log("req.body");
-        console.log(req.body);
-
-
-        console.log("req.headers");
-        console.log(req.headers);
         let rules = {
             "x-naz-app-key": 'required',
         };
