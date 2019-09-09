@@ -1,6 +1,6 @@
 const pgConnection = require('../../../model/pgConnection');
 const services = require('../../../service/service');
-
+const logger = require('tracer').colorConsole();
 const customMsgType = "MASTER_MESSAGE";
 const customMsgTypeCM = "COMMON_MESSAGE";
 
@@ -18,8 +18,8 @@ module.exports = {
 
         if (validation.passes()) {
 
-            let _app_id;
-            let _player_id;
+            let _app_id = req.appId;
+            let _player_id = req.userDetails.playerId
             let _event_id = req.body.event_id ? req.body.event_id : null;
             let _event_code = req.body.event_code ? req.body.event_code : null;
             let _event_name = req.body.event_name ? req.body.event_name : null;
@@ -31,96 +31,67 @@ module.exports = {
             let _txn_status = req.body.txn_status ? req.body.txn_status.toUpperCase() : 'PENDING';
 
             try {
-                _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-                _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
                 _np_balance = await services.commonServices.getWalletBalance(_player_id);
-
             } catch (error) {
-                _app_id = null;
-                _player_id = null;
+                logger.error('getWalletBalance Catch Err : ', error)
             }
 
-            console.log('_app_id', _app_id);
-            console.log('_player_id', _player_id);
-            console.log('_np_balance', _np_balance);
+            logger.info("\n-------------------------------------------------------\n" +
+                'Log type: Wallet Transaction \n' +
+                'App Id : ' + _app_id + '\n' +
+                'Player Id : ' + _player_id + '\n' +
+                'NP Balance : ' + _np_balance + '\n' +
+                '-------------------------------------------------------\n');
 
-            if (_app_id && _player_id) {
-                //  let _selectQuery = 'SELECT * from fn_get_app($1,$2)'
-                let _query = {
-                    text: "SELECT * from fn_wallet_transaction($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
-                    values: [_app_id, _player_id, _event_id, _event_code, _event_name, _np_balance, _order_id, _txn_type, _txn_status, _txn_mode, _reward_id]
+            let _query = {
+                text: "SELECT * from fn_wallet_transaction($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
+                values: [_app_id, _player_id, _event_id, _event_code, _event_name, _np_balance, _order_id, _txn_type, _txn_status, _txn_mode, _reward_id]
+            }
+
+            try {
+                let dbResult = await pgConnection.executeQuery('loyalty', _query)
+
+                if (dbResult && dbResult.length > 0) {
+                    services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "TXN_SUCCESS");
+                } else {
+                    services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "TXNl_FAILED");
                 }
-
-                try {
-                    let dbResult = await pgConnection.executeQuery('loyalty', _query)
-
-                    if (dbResult && dbResult.length > 0) {
-
-                        services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "TXN_SUCCESS");
-                    } else {
-                        services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "TXNl_FAILED");
-                    }
-                }
-                catch (error) {
-                    services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
-                }
-
-            } else {
-                services.sendResponse.sendWithCode(req, res, 'Invalid App Key or PlayerId', customMsgTypeCM, "VALIDATION_FAILED");
-
+            }
+            catch (error) {
+                logger.error('walletTransaction Catch Err : ', error)
+                services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
             }
 
         } else {
             services.sendResponse.sendWithCode(req, res, validation.errors.errors, customMsgTypeCM, "VALIDATION_FAILED");
-
         }
     },
 
 
     walletHistory: async function (req, res) {
 
-            let _app_id;
-            let _player_id;
+        let _app_id = req.appId;
+        let _player_id = req.userDetails.playerId
 
-            try {
-                _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-                _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
+        let _query = {
+            text: "SELECT * from fn_wallet_history($1)",
+            values: [_player_id]
+        }
 
-            } catch (error) {
-                _app_id = null;
-                _player_id = null;
-            }
+        try {
+            let dbResult = await pgConnection.executeQuery('loyalty', _query)
 
-            console.log('_app_id', _app_id);
-            console.log('_player_id', _player_id);
-
-            if (_app_id && _player_id) {
-                //  let _selectQuery = 'SELECT * from fn_get_app($1,$2)'
-                let _query = {
-                    text: "SELECT * from fn_wallet_history($1)",
-                    values: [_player_id]
-                }
-
-                try {
-                    let dbResult = await pgConnection.executeQuery('loyalty', _query)
-
-                    if (dbResult && dbResult.length > 0 && dbResult[0].data) {
-
-                        services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_SUCCESS");
-                    } else {
-                        services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "NO_DATA_FOUND");
-                    }
-
-                }
-                catch (error) {
-                    services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
-                }
-
+            if (dbResult && dbResult.length > 0 && dbResult[0].data) {
+                services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_SUCCESS");
             } else {
-                services.sendResponse.sendWithCode(req, res, 'Invalid App Key or PlayerId', customMsgTypeCM, "VALIDATION_FAILED");
-
+                services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "NO_DATA_FOUND");
             }
 
-      
+        }
+        catch (error) {
+            logger.error('walletHistory Catch Err : ', error)
+            services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
+        }
+
     }
 }

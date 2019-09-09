@@ -1,5 +1,6 @@
 const pgConnection = require('../../../model/pgConnection');
 const services = require('../../../service/service');
+const logger = require('tracer').colorConsole();
 
 const customMsgType = "MASTER_MESSAGE";
 const customMsgTypeCM = "COMMON_MESSAGE";
@@ -8,12 +9,7 @@ module.exports = {
 
     getEvents: async function (req, res) {
 
-        try {
-            _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-
-        } catch (error) {
-            _app_id = null;
-        }
+        _app_id = req.appId;
 
         let _query = {
             text: "SELECT * FROM fn_get_events($1)",
@@ -30,6 +26,7 @@ module.exports = {
             }
         }
         catch (error) {
+            logger.error('getEvents Catch Err : ', error)
             services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
         }
 
@@ -46,57 +43,46 @@ module.exports = {
 
         if (validation.passes()) {
 
-            try {
-                _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-                _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
+            let _app_id = req.appId;
+            let _player_id = req.userDetails.playerId
 
-            } catch (error) {
-                _app_id = null;
-                _player_id = null;
-            }
+            let _event_code = req.body.event_code ? req.body.event_code : null;
+            let _event_id, _event_name, creditPoints, creditSuccess;
 
-            if (_player_id) {
+            if (services.commonServices.checkSumValidation(req, res, [_event_code])) {
 
-                let _event_code = req.body.event_code ? req.body.event_code : null;
-                let _event_id, _event_name, creditPoints, creditSuccess;
+                try {
 
-                if (services.commonServices.checkSumValidation(req, res, [_event_code])) {
-
-                    try {
-
-                        let _query = {
-                            text: "SELECT event_id,event_code,points,event_name FROM tbl_app_events where event_code = $1 and app_id = $2 and status = 'ACTIVE'",
-                            values: [_event_code, _app_id]
-                        }
-                        let dbResult = await pgConnection.executeQuery('loyalty', _query)
-
-                        if (dbResult && dbResult.length > 0) {
-
-                            creditPoints = dbResult[0].points
-                            _event_id = dbResult[0].event_id
-                            _event_name = dbResult[0].event_name
-                            console.log(dbResult[0]);
-
-                            creditSuccess = await services.commonServices.walletTransaction(creditPoints, _app_id, _player_id, null, 'CREDIT', 'SUCCESS', 'EVENT', null, _event_id, _event_code, _event_name)
-                            if (creditSuccess) {
-                                services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "TXN_SUCCESS");
-                            } else {
-                                services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "TXN_FAILED");
-                            }
-
-                        } else {
-                            services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "GET_FAILED");
-                        }
-
-                    } catch (error) {
-                        /* console.log(error); */
-                        services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
+                    let _query = {
+                        text: "SELECT event_id,event_code,points,event_name FROM tbl_app_events where event_code = $1 and app_id = $2 and status = 'ACTIVE'",
+                        values: [_event_code, _app_id]
                     }
-                } else {
-                    services.sendResponse.sendWithCode(req, res, 'Invalid Checksum', customMsgTypeCM, "INVALID_ACCESS_TOKEN");
+                    let dbResult = await pgConnection.executeQuery('loyalty', _query)
+
+                    if (dbResult && dbResult.length > 0) {
+
+                        creditPoints = dbResult[0].points
+                        _event_id = dbResult[0].event_id
+                        _event_name = dbResult[0].event_name
+
+                        creditSuccess = await services.commonServices.walletTransaction(creditPoints, _app_id, _player_id, null, 'CREDIT', 'SUCCESS', 'EVENT', null, _event_id, _event_code, _event_name)
+
+                        if (creditSuccess) {
+                            services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "TXN_SUCCESS");
+                        } else {
+                            services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "TXN_FAILED");
+                        }
+
+                    } else {
+                        services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "GET_FAILED");
+                    }
+
+                } catch (error) {
+                    logger.error('claimEvent Catch Err : ', error)
+                    services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
                 }
             } else {
-                services.sendResponse.sendWithCode(req, res, 'Invalid Access Token', customMsgTypeCM, "INVALID_ACCESS_TOKEN");
+                services.sendResponse.sendWithCode(req, res, 'Invalid Checksum', customMsgTypeCM, "INVALID_CHECKSUM");
             }
 
         } else {

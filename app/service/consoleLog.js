@@ -1,3 +1,5 @@
+var logger = require('tracer').colorConsole();
+
 module.exports = {
 
     consoleDBLog: function (req, dbQuery, dbError, dbResult, timeToExecute) {
@@ -6,7 +8,7 @@ module.exports = {
 
             let errorDesc = dbError ? dbError.toString() : '';
 
-            console.log("-------------------------------------------------------\n" +
+            logger.info("-------------------------------------------------------\n" +
                 'Log type: Data Base \n' +
                 'route: ' + req.originalUrl + '\n' +
                 'req.method: ' + req.method + '\n' +
@@ -31,7 +33,7 @@ module.exports = {
 
         let errorDesc = err ? err.toString() : '';
 
-        console.log("-------------------------------------------------------\n" +
+        logger.info("-------------------------------------------------------\n" +
             'Log type: Console \n' +
             'route: ' + req.originalUrl + '\n' +
             'req.method: ' + req.method + '\n' +
@@ -59,16 +61,16 @@ module.exports = {
 
             let errorDesc = dbError ? dbError.toString() : '';
 
-            console.log("-------------------------------------------------------\n" +
-                'Log type: Execute Query\n' +
-                'dataBase - '+dataBase+'\n'+
-                'db query: ' + JSON.stringify(dbQuery) + '\n' +
-                'dbError: ' + JSON.stringify(dbError) + '\n' +
-                // 'err desc: ' + errorDesc + '\n' +
-                'NODE_ENV: ' + process.env.NODE_ENV + '\n' +
-                'dbResult: ' + JSON.stringify(dbResult) + '\n' +
-                'timeToExecute: ' + timeToExecute.preciseWords + '\n' +
-                '-------------------------------------------------------\n');
+            logger.debug("\n-------------------------------------------------------\n" +
+            'Log type: Execute Query\n' +
+            'dataBase - '+dataBase+'\n'+
+            'db query: ' + JSON.stringify(dbQuery) + '\n' +
+            'dbError: ' + JSON.stringify(dbError) + '\n' +
+            // 'err desc: ' + errorDesc + '\n' +
+            'NODE_ENV: ' + process.env.NODE_ENV + '\n' +
+            'dbResult: ' + JSON.stringify(dbResult) + '\n' +
+            'timeToExecute: ' + timeToExecute.preciseWords + '\n' +
+            '-------------------------------------------------------\n');
         }
     }
 }

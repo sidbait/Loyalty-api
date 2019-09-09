@@ -30,7 +30,7 @@
         "user": "rmg_admin",
         "password": "zw6aBw6GXrjV8MSURYfw",
         "database": "np_rmg",
-        "host": "13.235.179.220",
+        "host": "13.235.87.108",
         "port": 5432,
         "ssl": true,
         "max": 50,
