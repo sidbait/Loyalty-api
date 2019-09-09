@@ -37,6 +37,12 @@ module.exports = {
             messageCode: "INVALID_ACCESS_TOKEN",
             statusCode: 401
         },
+        "INVALID_CHECKSUM": {
+            success: 0,
+            message: "Invalid Checksum! Please provide the valid checksum.",
+            messageCode: "INVALID_CHECKSUM",
+            statusCode: 401
+        },
         "INSUFFICIENT_BALANCE": {
             success: 0,
             message: "Insufficient Balance in Wallet",
@@ -48,7 +54,14 @@ module.exports = {
             message: "Reward Contest has been ended",
             messageCode: "CONTEST_ENDED",
             statusCode: 400
+        },
+        "INVALID_GOODS": {
+            success: 0,
+            message: "Goods is not available!",
+            messageCode: "INVALID_GOODS",
+            statusCode: 400
         }
+        
     },
 
 

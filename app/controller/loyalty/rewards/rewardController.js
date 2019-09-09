@@ -1,6 +1,6 @@
 const pgConnection = require('../../../model/pgConnection');
 const services = require('../../../service/service');
-
+const logger = require('tracer').colorConsole();
 const customMsgType = "MASTER_MESSAGE";
 const customMsgTypeCM = "COMMON_MESSAGE";
 
@@ -8,104 +8,79 @@ module.exports = {
 
     getAll: async (req, res) => {
 
-        console.log(req.headers);
-
-        let _player_id;
-        let _app_id;
+        let _app_id = req.appId;
+        let _player_id = req.userDetails.playerId
         let _reward_id = req.body.reward_id ? parseInt(req.body.reward_id) : null;
         let _status = req.body.status ? req.body.status.toUpperCase() : null;
 
         let customResult;
 
-        try {
-            _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-            _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
-
-        } catch (error) {
-            _app_id = null
-            _player_id = null;
+        let _query = {
+            text: "SELECT * from fn_get_rewards($1,$2,$3)",
+            values: [_player_id, _reward_id, _status]
         }
 
-        if (_player_id && _app_id) {
+        try {
+            let dbResult = await pgConnection.executeQuery('loyalty', _query)
 
-            let _query = {
-                text: "SELECT * from fn_get_rewards($1,$2,$3)",
-                values: [_player_id, _reward_id, _status]
-            }
+            if (dbResult && dbResult.length > 0) {
 
-            try {
-                let dbResult = await pgConnection.executeQuery('loyalty', _query)
+                if (dbResult[0].data && dbResult[0].data.length > 0) {
 
-                if (dbResult && dbResult.length > 0) {
+                    let rewardsData;
+                    let joinData;
 
-                    console.log('ALL ==', dbResult[0]);
+                    rewardsData = dbResult[0].data
+                    joinData = dbResult[1].data
 
-                    if (dbResult[0].data && dbResult[0].data.length > 0) {
+                    let rewardsDataLength = rewardsData.length
 
-                        let rewardsData;
-                        let joinData;
-
-                        rewardsData = dbResult[0].data
-                        // console.log('rewardsData ==', rewardsData);
-                        joinData = dbResult[1].data
-                        console.log('joinData ==', joinData);
+                    for (let i = 0; i < rewardsDataLength; i++) {
 
 
-                        let rewardsDataLength = rewardsData.length
+                        rewardsData[i].show_reward = true
+                        let startTime = new Date(rewardsData[i].from_date)
+                        let repeatMin = rewardsData[i].repeat_min
 
-                        for (let i = 0; i < rewardsDataLength; i++) {
+                        let endTime = new Date(startTime.getTime() + repeatMin * 60000);
+                        let currentDate = new Date();
+                        currentDate.setHours(currentDate.getHours() + 5);
+                        currentDate.setMinutes(currentDate.getMinutes() + 30);
+                        let remainingSeconds = services.commonServices.getTimeDiif(endTime, currentDate)
 
+                        rewardsData[i].remaining_seconds = remainingSeconds
+                        rewardsData[i].winner = null
 
-                            rewardsData[i].show_reward = true
-                            let startTime = new Date(rewardsData[i].from_date)
-                            //console.log('startTime', startTime);
-                            let repeatMin = rewardsData[i].repeat_min
-
-                            let endTime = new Date(startTime.getTime() + repeatMin * 60000);
-                            let currentDate = new Date();
-                            currentDate.setHours(currentDate.getHours() + 5);
-                            currentDate.setMinutes(currentDate.getMinutes() + 30);
-                            let remainingSeconds = services.commonServices.getTimeDiif(endTime, currentDate)
-
-                            //  console.log('endTime', endTime);
-                            //  console.log('remainingSeconds', endTime, currentDate, remainingSeconds);
-                            rewardsData[i].remaining_seconds = remainingSeconds
-                            rewardsData[i].winner = null
-
-                            if (joinData) {
-                                for (let joinCount = 0; joinCount < joinData.length; joinCount++) {
-                                    if (rewardsData[i].reward_id == joinData[joinCount].reward_id) {
-                                        rewardsData[i].joins = joinData[joinCount].join
-                                        break;
-                                    } else {
-                                        rewardsData[i].joins = 0
-                                    }
+                        if (joinData) {
+                            for (let joinCount = 0; joinCount < joinData.length; joinCount++) {
+                                if (rewardsData[i].reward_id == joinData[joinCount].reward_id) {
+                                    rewardsData[i].joins = joinData[joinCount].join
+                                    break;
+                                } else {
+                                    rewardsData[i].joins = 0
                                 }
-                            } else {
-                                rewardsData[i].joins = 0
                             }
+                        } else {
+                            rewardsData[i].joins = 0
                         }
-
-                        customResult = rewardsData
-                        services.sendResponse.sendWithCode(req, res, customResult, customMsgType, "GET_SUCCESS");
-
-                    } else {
-                        services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "NO_DATA_FOUND");
                     }
 
+                    logger.info('Rewards Data : ', rewardsData)
+
+                    customResult = rewardsData
+                    services.sendResponse.sendWithCode(req, res, customResult, customMsgType, "GET_SUCCESS");
+
                 } else {
-                    services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "GET_FAILED");
+                    services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "NO_DATA_FOUND");
                 }
+
+            } else {
+                services.sendResponse.sendWithCode(req, res, dbResult, customMsgType, "GET_FAILED");
             }
-            catch (error) {
-
-                console.log(error);
-                services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
-            }
-
-        } else {
-            services.sendResponse.sendWithCode(req, res, 'Invalid Access Token or App Key', customMsgTypeCM, "VALIDATION_FAILED");
-
+        }
+        catch (error) {
+            logger.error('Rewards getAll Catch Err : ', error)
+            services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
         }
     },
 
@@ -117,8 +92,8 @@ module.exports = {
         let validation = new services.validator(req.body, rules);
 
         if (validation.passes()) {
-            let _app_id;
-            let _player_id;
+            let _app_id = req.appId;
+            let _player_id = req.userDetails.playerId
             let _reward_id = req.body.reward_id ? parseInt(req.body.reward_id) : null;
             let _ticket_code = req.body.ticket_code ? req.body.ticket_code : null;
             let _txn_status = req.body.txn_status ? req.body.txn_status.toUpperCase() : 'ACTIVE';
@@ -128,84 +103,62 @@ module.exports = {
             let rewardBuyAmt;
 
             try {
-                _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-                _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
-
+                walletBal = await services.commonServices.getWalletBalance(_player_id)
+                rewardBuyAmt = await services.commonServices.getRewardBuyAmt(_reward_id)
             } catch (error) {
-                _app_id = null;
-                _player_id = null;
+                walletBal = 0
+                rewardBuyAmt = null
             }
 
-            if (_player_id) {
+            if (rewardBuyAmt > 0) {
 
-                try {
-                    walletBal = await services.commonServices.getWalletBalance(_player_id)
-                    rewardBuyAmt = await services.commonServices.getRewardBuyAmt(_reward_id)
-                } catch (error) {
-                    walletBal = 0
-                    rewardBuyAmt = null
-                }
+                if (walletBal >= (rewardBuyAmt * _count)) {
 
-                if (rewardBuyAmt > 0) {
+                    let dbResultArr = [];
+                    for (let count = 0; count < _count; count++) {
 
-                    if (walletBal >= (rewardBuyAmt * _count)) {
+                        let _walletBal = await services.commonServices.getWalletBalance(_player_id)
+                        let debitSuccess;
 
-                        let dbResultArr = [];
-                        for (let count = 0; count < _count; count++) {
-
-                            let _walletBal = await services.commonServices.getWalletBalance(_player_id)
-                            let debitSuccess;
-
-                            console.log('player_id', typeof _player_id, _player_id);
-
-                            console.log('player_id', typeof _reward_id, _reward_id);
-
-                            try {
-                                debitSuccess = await services.commonServices.walletTransaction(rewardBuyAmt, _app_id, _player_id, _reward_id, 'DEBIT', 'SUCCESS', 'REWARD')
-                            } catch (error) {
-                                console.log(error);
-
-                                debitSuccess = false
-                            }
-
-                            console.log('debitSuccess', debitSuccess);
-
-
-                            if (debitSuccess) {
-                                _ticket_code = services.commonServices.randomString(10)
-
-                                let _query = {
-                                    text: "SELECT * from fn_reward_participate($1,$2,$3,$4,$5)",
-                                    values: [_player_id, _reward_id, _ticket_code, _txn_status, _app_id]
-                                }
-
-                                let dbResult = await pgConnection.executeQuery('loyalty', _query)
-                                console.log('fn_reward_participate', dbResult);
-                                dbResultArr.push(dbResult[0])
-
-                            }
+                        try {
+                            debitSuccess = await services.commonServices.walletTransaction(rewardBuyAmt, _app_id, _player_id, _reward_id, 'DEBIT', 'SUCCESS', 'REWARD')
+                        } catch (error) {
+                            logger.error('rewardParticipate walletTransaction Catch Err : ', error)
+                            debitSuccess = false
                         }
 
-                        console.log("dbResultArr=============");
-                        console.log(dbResultArr);
+                        if (debitSuccess) {
+                            _ticket_code = services.commonServices.randomString(10)
 
+                            let _query = {
+                                text: "SELECT * from fn_reward_participate($1,$2,$3,$4,$5)",
+                                values: [_player_id, _reward_id, _ticket_code, _txn_status, _app_id]
+                            }
 
-                        if (dbResultArr && dbResultArr.length > 0) {
-                            services.sendResponse.sendWithCode(req, res, dbResultArr, customMsgType, "GET_SUCCESS");
+                            let dbResult = await pgConnection.executeQuery('loyalty', _query)
+                            dbResultArr.push(dbResult[0])
 
-                        } else {
-                            services.sendResponse.sendWithCode(req, res, dbResultArr, customMsgType, "GET_FAILED");
                         }
+                    }
+
+                    logger.info("\n-------------------------------------------------------\n" +
+                        'Log type: Reward Participate Array \n' +
+                        'dbResultArr :  ' + dbResultArr + '\n' +
+                        '-------------------------------------------------------\n');
+
+                    if (dbResultArr && dbResultArr.length > 0) {
+                        services.sendResponse.sendWithCode(req, res, dbResultArr, customMsgType, "GET_SUCCESS");
 
                     } else {
-                        let customResponse = { np_balance: walletBal }
-                        services.sendResponse.sendWithCode(req, res, customResponse, customMsgTypeCM, "INSUFFICIENT_BALANCE");
+                        services.sendResponse.sendWithCode(req, res, dbResultArr, customMsgType, "GET_FAILED");
                     }
+
                 } else {
-                    services.sendResponse.sendWithCode(req, res, null, customMsgTypeCM, "CONTEST_ENDED");
+                    let customResponse = { np_balance: walletBal }
+                    services.sendResponse.sendWithCode(req, res, customResponse, customMsgTypeCM, "INSUFFICIENT_BALANCE");
                 }
             } else {
-                services.sendResponse.sendWithCode(req, res, 'Invalid Access Token', customMsgTypeCM, "INVALID_ACCESS_TOKEN");
+                services.sendResponse.sendWithCode(req, res, null, customMsgTypeCM, "CONTEST_ENDED");
             }
 
         } else {
@@ -214,6 +167,7 @@ module.exports = {
     },
 
     claimRewards: async (req, res) => {
+
         let rules = {
             "rw_id": 'required',
         };
@@ -221,57 +175,51 @@ module.exports = {
         let validation = new services.validator(req.body, rules);
 
         if (validation.passes()) {
-            let _app_id;
-            let _player_id;
+            let _app_id = req.appId;
+            let _player_id = req.userDetails.playerId
             let _rw_id = req.body.rw_id ? parseInt(req.body.rw_id) : null;
             let _reward_id;
             let _rm_id;
             let _win_amount;
             let _reward_type;
-            /*  let _ticket_code = req.body.ticket_code ? req.body.ticket_code : null;
-             let _txn_status = req.body.txn_status ? req.body.txn_status.toUpperCase() : 'ACTIVE';
-             let _count = req.body.count ? req.body.count : 1;
- 
-             let walletBal;
-             let rewardBuyAmt; */
 
             try {
-                _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-                _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
 
-            } catch (error) {
-                _app_id = null;
-                _player_id = null;
-            }
+                let _query = {
+                    text: "SELECT * from fn_get_reward_win_amt($1,$2)",
+                    values: [_player_id, _rw_id]
+                }
 
-            if (_player_id) {
+                let dbResult = await pgConnection.executeQuery('loyalty', _query)
 
-                try {
+                if (dbResult && dbResult.length > 0 && dbResult[0].data && dbResult[0].data.length > 0 && dbResult[0].data[0].reward_id) {
+
+                    _reward_id = dbResult[0].data[0].reward_id ? parseInt(dbResult[0].data[0].reward_id) : null
+                    _win_amount = dbResult[0].data[0].win_amount ? parseInt(dbResult[0].data[0].win_amount) : null
+                    _reward_type = dbResult[0].data[0].reward_type
+
+                    if (_reward_type.toUpperCase() == 'COIN') {
+                        let creditSuccess = await services.commonServices.walletTransaction(_win_amount, _app_id, _player_id, _reward_id, 'CREDIT', 'SUCCESS', 'REWARD', null)
+                        if (creditSuccess) {
+
+                            let _updateQuery = {
+                                text: "update tbl_reward_winners set is_claimed = true, claim_date = now() where rw_id = $1",
+                                values: [_rw_id]
+                            }
+
+                            let updateResult = await pgConnection.executeQuery('loyalty', _updateQuery)
+
+                            services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_SUCCESS");
+                        } else {
+                            services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_FAILED");
+                        }
+                    } else if (_reward_type.toUpperCase() == 'CASH') {
 
 
+                        try {
+                            let reedeemSuccess = await services.commonServices.reedeemCash(_rw_id, req.headers["access-token"], req.headers["x-naz-app-key"], 'rewards')
 
-                    let _query = {
-                        text: "SELECT * from fn_get_reward_win_amt($1,$2)",
-                        values: [_player_id, _rw_id]
-                    }
-
-                    let dbResult = await pgConnection.executeQuery('loyalty', _query)
-                    console.log("kk", dbResult[0].data.length, dbResult[0].data[0]);
-                    /*  if (dbResult && dbResult.length > 0 && dbResult[0].data && dbResult[0].data.length > 0 && dbResult[0].data[0].reward_id) {
-                         console.log("Hello", dbResult[0].data[0].length);
-                     } */
-                    /*   res.send(dbResult[0].data[0]) */
-
-                    if (dbResult && dbResult.length > 0 && dbResult[0].data && dbResult[0].data.length > 0 && dbResult[0].data[0].reward_id) {
-
-                        _reward_id = dbResult[0].data[0].reward_id ? parseInt(dbResult[0].data[0].reward_id) : null
-                        _win_amount = dbResult[0].data[0].win_amount ? parseInt(dbResult[0].data[0].win_amount) : null
-                        _reward_type = dbResult[0].data[0].reward_type
-
-
-                        if (_reward_type.toUpperCase() == 'COIN') {
-                            let creditSuccess = await services.commonServices.walletTransaction(_win_amount, _app_id, _player_id, _reward_id, 'CREDIT', 'SUCCESS', 'REWARD', null)
-                            if (creditSuccess) {
+                            if (reedeemSuccess.Success) {
 
                                 let _updateQuery = {
                                     text: "update tbl_reward_winners set is_claimed = true, claim_date = now() where rw_id = $1",
@@ -281,69 +229,37 @@ module.exports = {
                                 let updateResult = await pgConnection.executeQuery('loyalty', _updateQuery)
 
                                 services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_SUCCESS");
+
                             } else {
                                 services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_FAILED");
                             }
-                        } else if (_reward_type.toUpperCase() == 'CASH') {
 
-
-                            try {
-                                let reedeemSuccess = await services.commonServices.reedeemCash(_rw_id, req.headers["access-token"], req.headers["x-naz-app-key"], 'rewards')
-
-                                if (reedeemSuccess.Success) {
-
-                                    let _updateQuery = {
-                                        text: "update tbl_reward_winners set is_claimed = true, claim_date = now() where rw_id = $1",
-                                        values: [_rw_id]
-                                    }
-
-                                    let updateResult = await pgConnection.executeQuery('loyalty', _updateQuery)
-
-                                    services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_SUCCESS");
-
-                                } else {
-                                    services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_FAILED");
-                                }
-
-                            } catch (error) {
-
-                                console.log('reedeemCash ERr', error);
-                                services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_FAILED");
-
-                            }
-
-                        } else {
-                            let _updateQuery = {
-                                text: "update tbl_reward_winners set status = 'PROCESSING' where rw_id = $1",
-                                values: [_rw_id]
-                            }
-
-                            let updateResult = await pgConnection.executeQuery('loyalty', _updateQuery)
-
-                            services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_PROCESS");
+                        } catch (error) {
+                            logger.error('Reedeem Cash Error : ', error);
+                            services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_FAILED");
                         }
 
+                    } else {
+                        let _updateQuery = {
+                            text: "update tbl_reward_winners set status = 'PROCESSING' where rw_id = $1",
+                            values: [_rw_id]
+                        }
+                        let updateResult = await pgConnection.executeQuery('loyalty', _updateQuery)
+                        services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "CLAIM_PROCESS");
                     }
-                    else {
-                        services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "AlREADY_CLAIM");
-                    }
-
-                } catch (error) {
-                    console.log(error);
-
-                    services.sendResponse.sendWithCode(req, res, error, customMsgType, "GET_FAILED");
+                }
+                else {
+                    services.sendResponse.sendWithCode(req, res, '', 'CONTEST_MESSAGE', "AlREADY_CLAIM");
                 }
 
-            } else {
-                services.sendResponse.sendWithCode(req, res, 'Invalid Access Token', customMsgTypeCM, "INVALID_ACCESS_TOKEN");
+            } catch (error) {
+                logger.error('Claim Rewards Error : ', error);
+                services.sendResponse.sendWithCode(req, res, error, customMsgType, "GET_FAILED");
             }
 
         } else {
             services.sendResponse.sendWithCode(req, res, validation.errors.errors, "COMMON_MESSAGE", "VALIDATION_FAILED");
         }
-
-
-
     },
 
     getWinner: async (req, res) => {
@@ -369,17 +285,14 @@ module.exports = {
         try {
             let dbResult = await pgConnection.executeQuery('loyalty', _query)
 
-            console.log('dbResult', dbResult);
-
             if (dbResult && dbResult.length > 0 && dbResult[0].data) {
-
                 services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_SUCCESS");
-
             } else {
                 services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_FAILED");
             }
         }
         catch (error) {
+            logger.error('getWinnersSummary Error : ', error);
             services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
         }
 
@@ -393,8 +306,6 @@ module.exports = {
         let validation = new services.validator(req.body, rules);
 
         if (validation.passes()) {
-            let _app_id;
-            let _player_id;
             let _reward_id = req.body.reward_id ? parseInt(req.body.reward_id) : null;
 
             let _query = {
@@ -405,20 +316,16 @@ module.exports = {
             try {
                 let dbResult = await pgConnection.executeQuery('loyalty', _query)
 
-                console.log('dbResult', dbResult);
-
                 if (dbResult && dbResult.length > 0 && dbResult[0].data) {
-
                     services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_SUCCESS");
-
                 } else {
                     services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_FAILED");
                 }
             }
             catch (error) {
+                logger.error('getWinnersHistory Error : ', error);
                 services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
             }
-
 
         }
         else {
@@ -434,46 +341,29 @@ module.exports = {
         let validation = new services.validator(req.body, rules);
 
         if (validation.passes()) {
-            let _app_id;
-            let _player_id;
+            let _app_id = req.appId;
+            let _player_id = req.userDetails.playerId
             let _reward_id = req.body.reward_id ? req.body.reward_id : null;
 
-            try {
-                _app_id = await services.commonServices.getAppId(req.headers["x-naz-app-key"]);
-                _player_id = await services.commonServices.getPlayerIdByToken(req.headers["access-token"], _app_id);
-
-            } catch (error) {
-                _app_id = null;
-                _player_id = null;
+            let _query = {
+                text: "SELECT * from fn_get_purchasedtickets($1,$2)",
+                values: [_player_id, _reward_id]
             }
 
-            if (_player_id) {
+            try {
+                let dbResult = await pgConnection.executeQuery('loyalty', _query)
 
-                let _query = {
-                    text: "SELECT * from fn_get_purchasedtickets($1,$2)",
-                    values: [_player_id, _reward_id]
+                if (dbResult && dbResult.length > 0 && dbResult[0].data) {
+
+                    services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_SUCCESS");
+
+                } else {
+                    services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_FAILED");
                 }
-
-                try {
-                    let dbResult = await pgConnection.executeQuery('loyalty', _query)
-
-                    console.log('dbResult', dbResult);
-
-                    if (dbResult && dbResult.length > 0 && dbResult[0].data) {
-
-                        services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_SUCCESS");
-
-                    } else {
-                        services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_FAILED");
-                    }
-                }
-                catch (error) {
-                    services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
-                }
-
-
-            } else {
-                services.sendResponse.sendWithCode(req, res, 'Invalid Access Token', customMsgTypeCM, "VALIDATION_FAILED");
+            }
+            catch (error) {
+                logger.error('getPurchasedTickets Error : ', error);
+                services.sendResponse.sendWithCode(req, res, error, customMsgTypeCM, "DB_ERROR");
             }
         }
         else {
@@ -524,8 +414,6 @@ module.exports = {
                     currentDate.setMinutes(currentDate.getMinutes() + 30);
                     let remainingSeconds = services.commonServices.getTimeDiif(endTime, currentDate)
 
-                    //      console.log('endTime', endTime);
-                    //    console.log('remainingSeconds', endTime, currentDate, remainingSeconds);
 
                     rewardsData[i].remaining_seconds = remainingSeconds
 
@@ -545,13 +433,11 @@ module.exports = {
                     if (remainingSeconds < 0 && remainingSeconds >= -5) {
 
                         let _participantsCount = await services.commonServices.participantsCount(rewardsData[i].reward_id)
-
-                        console.log("3###_participantsCount : ", _participantsCount, typeof _participantsCount);
+                        logger.info('Participants Count : ', _participantsCount, typeof _participantsCount)
 
                         if (parseInt(_participantsCount) > 0) {
                             let winner = await services.commonServices.declareWinner(rewardsData[i].reward_id)
-                            console.log('winner declare', winner);
-
+                            logger.info('Reward Winner : ', winner)
                             rewardsData[i].winner = 'counting'
                         } else {
                             rewardsData[i].winner = null
@@ -597,7 +483,6 @@ module.exports = {
 
                     } else if (remainingSeconds < -20) {
 
-
                         rewardsData[i].show_reward = false
                         let _updateQuery = {
                             text: "update tbl_reward set status='DEACTIVE' where reward_id= $1",
@@ -609,9 +494,6 @@ module.exports = {
                             }).catch(err => {
 
                             })
-
-                        /*  rewardsData.splice(i, 1);
-                         i--; */
 
                     } else {
                         rewardsData[i].winner = null

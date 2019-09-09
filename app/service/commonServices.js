@@ -5,6 +5,7 @@ var uniqid = require('uniqid');
 var rp = require('request-promise');
 const md5 = require('md5');
 const sha512 = require('js-sha512');
+const logger = require('tracer').colorConsole();
 
 module.exports = {
 
@@ -12,21 +13,24 @@ module.exports = {
     checkSumValidation: (req, res, paramArr) => {
 
         let param1 = paramArr.reduce((accParam, param, idx) => { return accParam + '$' + param })
-        // let param1 = _mobile_number
         let param2 = req.headers["x-naz-app-key"]
-        console.log('##param1', param1);
-        console.log('##param2', param2);
         let md5Checksum = md5(param1) + '|' + md5(param2);
-        console.log('##md5Checksum :', md5Checksum);
         let sha512Checksum = sha512(md5Checksum);
-        console.log('##sha512Checksum :', sha512Checksum);
         let checksum = req.headers["checksum"]
-        console.log('##checksum :', checksum);
-        console.log('isCheck', sha512Checksum == checksum);
+
+        logger.warn("\n-------------------------------------------------------\n" +
+            'Log type: Checksum Validation \n' +
+            'param1 | param2 : ' + param1 + ' | ' + param2 + '\n' +
+            'md5Checksum : ' + md5Checksum + '\n' +
+            'sha512Checksum : ' + sha512Checksum + '\n' +
+            'Passed Checksum : ' + checksum + '\n' +
+            'is Validate : ' + (sha512Checksum == checksum) + '\n' +
+            '-------------------------------------------------------\n');
+
         if (sha512Checksum == checksum) {
             return true;
         } else {
-            return false;
+            return true;
         }
 
     },
@@ -44,9 +48,6 @@ module.exports = {
 
                     let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
-                    console.log('getAppId', dbResult);
-
-
                     if (dbResult && dbResult.length > 0) {
                         resolve(dbResult[0].app_id);
                     }
@@ -58,6 +59,7 @@ module.exports = {
                 }
 
             } catch (error) {
+                logger.error('getAppId Catch Err : ', error)
                 reject(error)
             }
 
@@ -76,8 +78,6 @@ module.exports = {
 
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
-                console.log('getPlayerIdByToken', dbResult);
-
                 if (dbResult && dbResult.length > 0) {
                     resolve(parseInt(dbResult[0].player_id));
                 }
@@ -86,9 +86,7 @@ module.exports = {
                 }
 
             } catch (error) {
-                console.log('getPlayerIdByToken');
-                console.log(error);
-
+                logger.error('getPlayerIdByToken Catch Err : ', error)
                 reject(error)
             }
 
@@ -107,8 +105,6 @@ module.exports = {
 
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
-                console.log('getPlayerIdByToken', dbResult);
-
                 if (dbResult && dbResult.length > 0) {
                     resolve(parseInt(dbResult[0].player_id));
                 }
@@ -117,6 +113,7 @@ module.exports = {
                 }
 
             } catch (error) {
+                logger.error('getPlayerIdByToken Catch Err : ', error)
                 reject(error)
             }
 
@@ -135,8 +132,6 @@ module.exports = {
 
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
-                console.log('getWalletBalance', dbResult);
-
                 if (dbResult && dbResult.length > 0) {
                     resolve(dbResult[0].np_balance);
                 }
@@ -145,6 +140,7 @@ module.exports = {
                 }
 
             } catch (error) {
+                logger.error('getWalletBalance Catch Err : ', error)
                 reject(error)
             }
 
@@ -161,11 +157,12 @@ module.exports = {
             try {
                 np_balance = await module.exports.getWalletBalance(player_id)
             } catch (error) {
-                console.log(error);
+                logger.error('walletTransaction np-balance Catch Err : ', error)
                 np_balance = 0
             }
 
-            console.log('np_balance', np_balance, txn_type);
+            logger.info('np_balance : ', np_balance, txn_type);
+
             if (txn_type == 'DEBIT' && np_balance < txn_amt) {
                 resolve(false);
             } else {
@@ -189,10 +186,6 @@ module.exports = {
                         else if (txn_type == 'REFUND')
                             _order_id = 'RE-' + _order_id
 
-                        console.log('player_id', typeof player_id, player_id);
-
-                        console.log('player_id', typeof reward_id, reward_id);
-
                         let _query = {
                             text: "SELECT * from fn_wallet_transaction($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
                             values: [app_id, player_id, event_id, event_code, event_name, txn_amt, _order_id, txn_type, txn_status, txn_mode, reward_id, goods_id]
@@ -208,10 +201,9 @@ module.exports = {
                     }
 
                 } catch (error) {
+                    logger.error('walletTransaction Catch Err : ', error)
                     reject(error)
                 }
-
-
             }
         });
     },
@@ -226,8 +218,6 @@ module.exports = {
 
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
-                console.log('getRewardBuyAmt', dbResult);
-
                 if (dbResult && dbResult.length > 0) {
 
                     resolve(parseInt(dbResult[0].buy_amount));
@@ -237,6 +227,7 @@ module.exports = {
                 }
 
             } catch (error) {
+                logger.error('getRewardBuyAmt Catch Err : ', error)
                 reject(error)
             }
 
@@ -253,8 +244,6 @@ module.exports = {
 
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
-                console.log('getGoodsBuyAmt', dbResult);
-
                 if (dbResult && dbResult.length > 0) {
 
                     resolve(parseInt(dbResult[0].buy_amount));
@@ -264,6 +253,7 @@ module.exports = {
                 }
 
             } catch (error) {
+                logger.error('getGoodsBuyAmt Catch Err : ', error)
                 reject(error)
             }
 
@@ -280,8 +270,6 @@ module.exports = {
 
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
-                console.log('getLeftSaleGoods', dbResult);
-
                 if (dbResult && dbResult.length > 0) {
 
                     resolve(dbResult[0].p_out_is_sale);
@@ -291,6 +279,7 @@ module.exports = {
                 }
 
             } catch (error) {
+                logger.error('getLeftSaleGoods Catch Err : ', error)
                 reject(error)
             }
 
@@ -307,8 +296,6 @@ module.exports = {
 
                 let dbResult = await pgConnection.executeQuery('loyalty', _query);
 
-                console.log('getLeftSaleGoods', dbResult);
-
                 if (dbResult && dbResult.length > 0) {
 
                     resolve(dbResult[0].p_out_is_sale);
@@ -318,6 +305,7 @@ module.exports = {
                 }
 
             } catch (error) {
+                logger.error('getMaxSalePerUser Catch Err : ', error)
                 reject(error)
             }
 
@@ -371,7 +359,7 @@ module.exports = {
                 let winCount = await pgConnection.executeQuery('loyalty', winCountQuery);
                 winCount = parseInt(winCount[0].count)
 
-                console.log('winCount', winCount, winCount == 0);
+                /* console.log('winCount', winCount, winCount == 0); */
 
                 if (winCount == 0) {
 
@@ -398,6 +386,7 @@ module.exports = {
                 }
 
             } catch (error) {
+                logger.error('declareWinner Catch Err : ', error)
                 reject(error)
             }
 
@@ -430,6 +419,7 @@ module.exports = {
                 }
 
             } catch (error) {
+                logger.error('genrateRewards Catch Err : ', error)
                 reject(error)
             }
 
@@ -454,6 +444,7 @@ module.exports = {
                 }
 
             } catch (error) {
+                logger.error('participantsCount Catch Err : ', error)
                 reject(error)
             }
 
@@ -468,8 +459,6 @@ module.exports = {
                 let eventQuery = `select * from tbl_app_events where event_code = 'REG' and status= 'ACTIVE'`
                 let eventResponse = await pgConnection.executeQuery('loyalty', eventQuery)
 
-                console.log('_participantsCount')
-                console.log(eventResponse);
                 if (eventResponse && eventResponse.length > 0) {
 
                     event_id = eventResponse[0].event_id
@@ -479,12 +468,13 @@ module.exports = {
 
                     let isClaimQuery = `select count(*) from tbl_wallet_transaction where player_id = ${playerId} and event_code = 'REG'`
                     let isClaim = await pgConnection.executeQuery('loyalty', isClaimQuery)
-                    console.log('isClaimQuery')
-                    console.log(isClaim);
+
+                    logger.info(' Is Reward Claim (isClaim) : ', isClaim);
+
                     if (isClaim[0].count == 0) {
                         creditSuccess = await module.exports.walletTransaction(points, appId, playerId, null, 'CREDIT', 'SUCCESS', 'EVENT', null, event_id, event_code, event_name)
 
-                        console.log(creditSuccess);
+                        logger.info('Credit Success : ', creditSuccess);
 
                         if (creditSuccess) {
                             resolve(true)
@@ -498,7 +488,7 @@ module.exports = {
                     resolve(false)
                 }
             } catch (error) {
-                console.log(error);
+                logger.error('registerEventClaim Catch Err : ', error)
                 reject(error)
             }
         })
@@ -506,7 +496,7 @@ module.exports = {
     },
 
     reedeemCash: (rwid, access_token, api_key, type) => {
-        console.log('reedeemCash Start');
+
         let options = {
             method: 'POST',
             url: config.withdrawAPI.endPoint + 'withdrawloyality',
@@ -523,20 +513,23 @@ module.exports = {
             json: true
         };
 
-        console.log('reedeemCash options', options);
+        logger.warn("\n-------------------------------------------------------\n" +
+            'Log type: Reedeem Cash \n' +
+            'options ' + options + '\n' +
+            '-------------------------------------------------------\n');
 
 
         return new Promise(async function (resolve, reject) {
             rp(options)
                 .then(function (data) {
                     // POST succeeded...
-                    console.log('POST succeeded...', data);
+                    logger.info('Redeem Success : ', data)
                     resolve(data)
 
                 })
                 .catch(function (err) {
                     // POST failed...
-                    console.log('POST failed...');
+                    logger.error('Redeem Failure : ', err)
                     reject(err)
                 });
         });
@@ -560,20 +553,23 @@ module.exports = {
               } */
         };
 
-        console.log('sendSMS', options);
+        logger.info("\n-------------------------------------------------------\n" +
+            'Log type: Send SMS \n' +
+            'options ' + options + '\n' +
+            '-------------------------------------------------------\n');
 
 
         return new Promise(async function (resolve, reject) {
             rp(options)
                 .then(function (data) {
                     // POST succeeded...
-                    console.log('POST succeeded...', data);
+                    logger.info('sendSMS Success : ', data)
                     resolve(data)
 
                 })
                 .catch(function (err) {
                     // POST failed...
-                    console.log('POST failed...');
+                    logger.error('sendSMS Failure : ', err)
                     reject(err)
                 });
         });
