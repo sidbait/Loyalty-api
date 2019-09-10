@@ -116,7 +116,7 @@ module.exports = {
                                 values: [tempRes[1], _app_id]
                             }
 
-                            let tokenResult = await pgConnection.executeQuery('loyalty', _tokenQuery)
+                            let tokenResult = await pgConnection.executeQuery('loyalty', _tokenQuery, true, 60 * 10)
                             customResponse.playerId = tempRes[1]
                             customResponse.accessToken = tokenResult[0].nz_access_token
 
