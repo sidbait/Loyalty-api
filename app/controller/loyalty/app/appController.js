@@ -53,7 +53,7 @@ module.exports = {
 
                 try {
 
-                    let dbResult = await pgConnection.executeQuery('loyalty', _query, true, 60 * 10)
+                    let dbResult = await pgConnection.executeQuery('loyalty', _query)
 
                     if (dbResult && dbResult.length > 0) {
 
