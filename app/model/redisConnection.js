@@ -13,9 +13,11 @@ client.on('connect', () => {
 
 module.exports = {
     GetRedis: function (key) {
+
+        let KeyStr = JSON.stringify(key)
         return new Promise(function (resolve, reject) {
             if (isRedis) {
-                client.get(key, function (err, reply) {
+                client.get(KeyStr, function (err, reply) {
                     if (err) {
                         reject(err);
                     }
@@ -23,6 +25,7 @@ module.exports = {
 
                         try {
                             reply = JSON.parse(reply)
+
                         } catch (error) {
                             console.log(error);
                             reject(error);
@@ -40,11 +43,14 @@ module.exports = {
     },
 
     SetRedis: function (key, val, expiretime) {
+
+        let KeyStr = JSON.stringify(key)
+
         return new Promise(function (resolve, reject) {
             if (isRedis) {
                 let newVal = JSON.stringify(val);
-                client.set(key, newVal, redis.print);
-                client.expire(key, expiretime) //  in sec
+                client.set(KeyStr, newVal, redis.print);
+                client.expire(KeyStr, expiretime) //  in sec
                 resolve(redis.print);
             } else {
                 reject('err');

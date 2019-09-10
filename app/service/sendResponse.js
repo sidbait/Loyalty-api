@@ -9,7 +9,7 @@ module.exports = {
 
         if (err) {
 
-            response.success = false;
+            response.success = 0;
             response.message = 'Error occured to data base - ' + err.toString();
             response.data = null;
 
@@ -18,7 +18,7 @@ module.exports = {
         else {
             if (result.length > 0) {
 
-                response.success = true;
+                response.success = 1;
                 response.message = message;
                 response.data = result
 
@@ -26,7 +26,7 @@ module.exports = {
             }
             else {
 
-                response.success = false;
+                response.success = 0;
                 response.message = "Details not found!";
                 response.data = null;
                 res.json(response)
@@ -46,7 +46,7 @@ module.exports = {
             response.data = customJSON;
         }
         else {
-            response.success = false;
+            response.success = 0;
             response.statusCode = "";
             response.messageCode = "";
             response.message = "Empty Message!";

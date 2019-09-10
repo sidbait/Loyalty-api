@@ -184,7 +184,7 @@ module.exports = {
                     _query += ` and goal_code = '${goalCode}'`;
                 }
 
-                let dbResult = await pgConnection.executeQuery('loyalty', _query);
+                let dbResult = await pgConnection.executeQuery('loyalty', _query, true, 60 * 10);
 
                 resolve(dbResult);
 

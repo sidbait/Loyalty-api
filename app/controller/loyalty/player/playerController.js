@@ -35,7 +35,7 @@ module.exports = {
         }
 
         try {
-            let dbResult = await pgConnection.executeQuery('loyalty', _query)
+            let dbResult = await pgConnection.executeQuery('loyalty', _query, true, 60 * 10)
 
             if (dbResult && dbResult.length > 0) {
                 services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_SUCCESS");
@@ -60,7 +60,7 @@ module.exports = {
         }
 
         try {
-            let dbResult = await pgConnection.executeQuery('loyalty', _query)
+            let dbResult = await pgConnection.executeQuery('loyalty', _query, true, 60 * 10)
 
             if (dbResult && dbResult.length > 0 && dbResult[0].data && dbResult[0].data.length > 0) {
                 services.sendResponse.sendWithCode(req, res, dbResult[0].data, customMsgType, "GET_SUCCESS");

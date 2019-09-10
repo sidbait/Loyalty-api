@@ -53,7 +53,7 @@ module.exports = {
 
                 try {
 
-                    let dbResult = await pgConnection.executeQuery('loyalty', _query)
+                    let dbResult = await pgConnection.executeQuery('loyalty', _query, true, 60 * 10)
 
                     if (dbResult && dbResult.length > 0) {
 
@@ -116,7 +116,7 @@ module.exports = {
                                 values: [tempRes[1], _app_id]
                             }
 
-                            let tokenResult = await pgConnection.executeQuery('loyalty', _tokenQuery)
+                            let tokenResult = await pgConnection.executeQuery('loyalty', _tokenQuery, true, 60 * 10)
                             customResponse.playerId = tempRes[1]
                             customResponse.accessToken = tokenResult[0].nz_access_token
 
@@ -180,7 +180,7 @@ module.exports = {
 
             try {
 
-                let dbResult = await pgConnection.executeQuery('loyalty', _query)
+                let dbResult = await pgConnection.executeQuery('loyalty', _query, true, 60 * 10)
 
                 if (dbResult && dbResult.length > 0) {
 
@@ -273,7 +273,7 @@ module.exports = {
                         values: [_player_id, _app_id]
                     }
 
-                    let playerResult = await pgConnection.executeQuery('loyalty', _playerQuery)
+                    let playerResult = await pgConnection.executeQuery('loyalty', _playerQuery, true, 60 * 10)
 
                     //console.log(playerResult[0].data);
 
@@ -304,7 +304,7 @@ module.exports = {
         }
 
         try {
-            let dbResult = await pgConnection.executeQuery('loyalty', _query)
+            let dbResult = await pgConnection.executeQuery('loyalty', _query, true, 60 * 60)
 
             if (dbResult && dbResult.length > 0) {
 
