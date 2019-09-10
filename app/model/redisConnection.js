@@ -20,9 +20,15 @@ module.exports = {
                         reject(err);
                     }
                     if (reply) {
+                        console.log('key : ', key);
+                        console.log('Reply : ', JSON.stringify(reply));
+
 
                         try {
                             reply = JSON.parse(reply)
+
+                            console.log(reply);
+                            
                         } catch (error) {
                             console.log(error);
                             reject(error);
@@ -40,6 +46,9 @@ module.exports = {
     },
 
     SetRedis: function (key, val, expiretime) {
+
+
+        console.log(key)
         return new Promise(function (resolve, reject) {
             if (isRedis) {
                 let newVal = JSON.stringify(val);
