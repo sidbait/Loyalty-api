@@ -11,7 +11,7 @@ checkBlockDeviceById = async function(deviceId) {
       text: `select device_id from tbl_player_block_device where device_id = $1`,
       values: [deviceId]
     };
-    let response = await pgConnect.executeQuery(query);
+    let response = await pgConnect.executeQuery('loyalty',query);
     logger.info('if the device is block', response.length);
     return response.length;
   } catch (err) {
@@ -40,7 +40,7 @@ createPlayer = async function(app_id, mobile, email_id, first_name, last_name, p
         status
       ]
     };
-    let playerCreated = await pgConnect.executeQuery(query);
+    let playerCreated = await pgConnect.executeQuery('loyalty',query);
     logger.debug('player created: ', playerCreated[0]);
     return playerCreated[0];
   } catch (err) {
@@ -63,7 +63,7 @@ playerExists = async function(mobile, email) {
       query.values.push(email);
     }
 
-    let player = await pgConnect.executeQuery(query);
+    let player = await pgConnect.executeQuery('loyalty',query);
     logger.trace('player found:', player);
     query.values = [];
     return player[0];
@@ -78,7 +78,7 @@ createDevice = async function(player_id, app_id, device_id, fcmToken) {
       text: `insert into tbl_player_device (player_id, app_id, device_id, fcm_token, created_at) values ($1, $2, $3, $4, now()) ON CONFLICT DO NOTHING RETURNING device_id;`,
       values: [player_id, app_id, device_id, fcmToken]
     };
-    let deviceCreated = await pgConnect.executeQuery(query);
+    let deviceCreated = await pgConnect.executeQuery('loyalty',query);
     logger.debug('device created: ', deviceCreated[0])
     return deviceCreated[0];
   } catch(err) {
@@ -92,7 +92,7 @@ const getPlayerById = async function(playerId) {
       text: `select * from tbl_player where player_id = $1 and status IN ('ACTIVE','STKUSER') limit 1;`,
       values: [playerId]
     };
-    let player = await pgConnect.executeQuery(query);
+    let player = await pgConnect.executeQuery('loyalty',query);
     logger.debug('player get by id: ', player[0]);
     return player[0];
   } catch(err) {
@@ -109,7 +109,7 @@ const getPlayerDetailsById = async function(playerId) {
       where p.player_id = $1 and status IN ('ACTIVE','STKUSER')  limit 1;`,
       values: [playerId]
     };
-    let playerDetails = await pgConnect.executeQuery(query);
+    let playerDetails = await pgConnect.executeQuery('loyalty',query);
     logger.info('player details get by id: ', playerDetails[0]);
     return playerDetails[0];
   } catch(err) {
@@ -129,7 +129,7 @@ getPlayerFullDetailByPhone = async function(playerId, mobile) {
       where status IN ('ACTIVE','STKUSER', 'BLOCK') and phone_number = $1`,
       values: [mobile]
     };
-    let player = await pgConnect.executeQuery(query);
+    let player = await pgConnect.executeQuery('loyalty',query);
     logger.debug('player with devices id and other fields:', player[0]);
     return player[0];
   } catch(err) {
@@ -150,7 +150,7 @@ const getPlayerWalletBalance = async function(playerId) {
       where w.player_id = $1 limit 1;`,
       values: [playerId]
     };
-    let response = await pgConnect.executeQuery(query);
+    let response = await pgConnect.executeQuery('loyalty',query);
     logger.info('player wallet balance details:', response[0]);
     return response[0];
   } catch(err) {
@@ -165,7 +165,7 @@ verifyPlayerMobile = async function(playerId) {
       SET phone_number_verified = 'true', updated_at = NOW() where player_id = $1 RETURNING phone_number_verified;`,
       values: [playerId]
     };
-    let verifyMobile = await pgConnect.executeQuery(query);
+    let verifyMobile = await pgConnect.executeQuery('loyalty',query);
     logger.debug('mobile verified successfully in db:', verifyMobile[0]);
     return verifyMobile[0];
   } catch(err) {
@@ -251,7 +251,7 @@ const updatePlayer = async (playerId, deviceId, appId, appName, fullName, firstN
       text: `${textString} updated_at = NOW() where player_id = $1 RETURNING *;`,
       values: [playerId]
     };
-    let response = await pgConnect.executeQuery(query);
+    let response = await pgConnect.executeQuery('loyalty',query);
     logger.info('updated player details successfully: ', response[0]);
     return response[0];
   } catch(err) {

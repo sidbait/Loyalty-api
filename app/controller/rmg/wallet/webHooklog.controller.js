@@ -10,7 +10,7 @@ const addWebHookLog = async (OrderID, Gateway, GatewayTxnID, ResponseTxt) => {
       VALUES($1, $2, $3, $4, NOW());`,
       values: [OrderID, Gateway, GatewayTxnID, ResponseTxt]
     };
-    let response = await pgConnect.executeQuery(query);
+    let response = await pgConnect.executeQuery('loyalty',query);
     logger.info('added web hook log successfully: ', response);
     return response;
   } catch(err) {

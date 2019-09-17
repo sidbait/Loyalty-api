@@ -18,7 +18,7 @@ async function playerGenerateToken(appId, appName, playerId, deviceId) {
       DO UPDATE SET token = excluded.token, expire_at = excluded.expire_at RETURNING token;`,
       values: [playerId, encryptToken]
     };
-    let response = await pgConnect.executeQuery(query);
+    let response = await pgConnect.executeQuery('loyalty',query);
     logger.warn('token response', response);
     return response[0];
   } catch(err) {

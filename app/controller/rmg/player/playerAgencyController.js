@@ -8,7 +8,7 @@ async function createPlayerAgency() {
       text: `insert into tbl_player_agency (player_id, agency_name, agency_para, agency_pubid, click_id, created_at) values () ON CONFLICT DO NOTHING RETURING *;`,
       values: []
     };
-    let playerAgency = await pgConnect.executeQuery(query);
+    let playerAgency = await pgConnect.executeQuery('loyalty',query);
     logger.debug('created player agency record successfully into db: ', playerAgency);
     return playerAgency;
   } catch (err) {
@@ -24,7 +24,7 @@ async function getAgencyDetails(playerId) {
       where p.player_id = $1 limit 1;`,
       values: [playerId]
     };
-    let agency = await pgConnect.executeQuery(query);
+    let agency = await pgConnect.executeQuery('loyalty',query);
     logger.debug('agency details by playerId: ', agency[0]);
     return agency[0];
   } catch(err) {
@@ -39,7 +39,7 @@ async function addPixelLog(playerId, source, clickId, event, url, res, status) {
       VALUES(?, ?, ?, ?, ?, ?, ?, now());`,
       values: [playerId, source, clickId, event, url, res, status]
     };
-    let pixelLog = await pgConnect.executeQuery(query);
+    let pixelLog = await pgConnect.executeQuery('loyalty',query);
     logger.debug('pixel added in log: ', pixelLog[0]);
     return pixelLog[0];
   } catch(err) {
@@ -54,7 +54,7 @@ async function getPixelMaster(source, eventType) {
       FROM tbl_pixel_master where status = 'ACTIVE' and LOWER(source) = $1 and event_type = $2 limit 1;`,
       values: [source, eventType]
     };
-    let pixelMaster = await pgConnect.executeQuery(query);
+    let pixelMaster = await pgConnect.executeQuery('loyalty',query);
     logger.debug('pixel master source data: ', pixelMaster[0]);
     return pixelMaster[0];
   } catch(err) {

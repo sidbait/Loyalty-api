@@ -19,7 +19,7 @@ const walletTranxHistory = async (playerId, page, limit) => {
 	created_at, updated_at, bank_name, chmod, pg_source, pg_txn_id, nz_txn_type, nz_txn_status, nz_txn_event, nz_txn_event_id, nz_txn_event_name, created_at::DATE created_dt FROM tbl_wallet_transaction where player_id = $1 and nz_txn_type not in ('RECON_DEBIT','RECON_CREDIT') and amount ~ '^[0-9\.]+$' = true order by updated_at desc LIMIT $2 OFFSET $3`,
       values: [playerId, limit, page]
     };
-    let response = await pgConnect.executeQuery(query);
+    let response = await pgConnect.executeQuery('loyalty',query);
     logger.info('Fetch wallet transaction for a player:', response.length);
     return response;
   } catch(err) {
@@ -33,7 +33,7 @@ const getWalletTxnByOrderId = async (orderId) => {
       text: `select * from tbl_wallet_transaction where order_id = $1;`,
       values: [orderId]
     };
-    let response = await pgConnect.executeQuery(query);
+    let response = await pgConnect.executeQuery('loyalty',query);
     logger.info('wallet transaction found by order id: ', response[0]);
     return response[0];
   } catch(err) {

@@ -9,7 +9,7 @@ async function initBalance(playerId) {
       values($1, 0, 0, 0, NOW(), NOW()) returning *;`,
       values: [playerId]
     };
-    let init = await pgConnect.executeQuery(query);
+    let init = await pgConnect.executeQuery('loyalty',query);
     logger.info('initialized the wallet balance for a player', init[0]);
     return init[0];
   } catch(err) {
@@ -29,7 +29,7 @@ async function addWalletTransaction(appId, playerId, orderId, mobileNo, amount, 
       values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, now(), now(), $19, $20, $21, $22) RETURNING tbl_wallet_transaction.*;`,
       values: [appId, playerId, orderId, mobileNo, amount, currency, ipAddress, deviceId, userAgent, status, apTxnId, apTxnStatus, responseTxt, txnType, WalletBalance, comment, pgSource, pgTxnId, nzTxnEvent, nzTxnEventId, nzTxnEventName, bonus]
     };
-    let tranx = await pgConnect.executeQuery(query);
+    let tranx = await pgConnect.executeQuery('loyalty',query);
     logger.info('wallet transaction: ', tranx[0]);
     return tranx[0];
   } catch(err) {
@@ -53,7 +53,7 @@ async function creditRewardBalance(playerId, txnId, txnType, walletBalance, amou
       returning *;`,
       values: [playerId, amount]
     };
-    let balance = await pgConnect.executeQuery(query);
+    let balance = await pgConnect.executeQuery('loyalty',query);
     logger.info('credit reward balanace into db: ', balance[0]);
     let log = await addLog(playerId, balance, txnId, txnType, walletBalance, amount);
     // logger.info('log created for wallet balance:', log);
@@ -71,7 +71,7 @@ async function creditWinningBalance(playerId, txnId, txnType, walletBalance, amo
       DO UPDATE SET winning_balance = excluded.winning_balance + (select winning_balance from tbl_wallet_balance where player_id = $1), updated_at = NOW() returning *;`,
       values: [playerId, amount]
     };
-    let creditBalance = await pgConnect.executeQuery(query);
+    let creditBalance = await pgConnect.executeQuery('loyalty',query);
     logger.info('credited winning balance for a player into db: ', creditBalance[0]);
 
     // add log
@@ -93,7 +93,7 @@ async function creditDepositBalance(playerId, txnId, txnType, walletBalance, amo
       returning *;`,
       values: [playerId, amount]
     };
-    let creditDeposit = await pgConnect.executeQuery(query);
+    let creditDeposit = await pgConnect.executeQuery('loyalty',query);
     logger.info('credited deposit balance for a player into db: ', creditDeposit[0]);
     // add log
     let log = await addLog(playerId, creditDeposit[0], txnId, txnType, walletBalance, amount);
@@ -113,7 +113,7 @@ async function addLog(playerId, balance, txnId, txnType, walletBalance, amount) 
       values($1,$2,$3,$4,$5,$6,$7,$8,NOW()) returning *;`,
       values: [playerId, txnId, txnType, amount, balance.reward_balance, balance.deposit_balance, balance.winning_balance, walletBalance]
     };
-    let logCreated = await pgConnect.executeQuery(query);
+    let logCreated = await pgConnect.executeQuery('loyalty',query);
     logger.info('log created for wallet balance:', logCreated[0]);
     return logCreated[0];
   } catch (err) {
@@ -167,7 +167,7 @@ async function debitAllBalance(wBal, amount, playerId, txnId, txnType) {
 			where player_id = $4 returning *;`,
       values: [bal.winning_balance, bal.deposit_balance, bal.reward_balance, playerId]
     };
-    let debitAll = await pgConnect.executeQuery(query);
+    let debitAll = await pgConnect.executeQuery('loyalty',query);
     logger.info('Debited all wallet balance type:', debitAll[0]);
 
     // add log.
@@ -187,7 +187,7 @@ async function debitWinningBalance(playerId, amount, txnId, txyType) {
       where player_id = $1 and winning_balance >= $2 returning *;`,
       values: [playerId, amount]
     };
-    let response = await pgConnect.executeQuery(query);
+    let response = await pgConnect.executeQuery('loyalty',query);
     logger.info('debit winnning balance for a player: ', response[0]);
     // add log.
     let log = await addLog(playerId, response, txnId, txyType, amount);
@@ -206,7 +206,7 @@ async function udpateWalletTxnStatus(walletTxnId, status, walletBalance) {
       where wallet_txn_id = ? RETURNING tbl_wallet_transaction.*;`,
       values: [status, walletBalance, walletTxnId]
     };
-    let response = await pgConnect.executeQuery(query);
+    let response = await pgConnect.executeQuery('loyalty',query);
     logger.info('wallet balance updated successfully: ', response[0]);
     return response[0];
   } catch(err) {
@@ -223,7 +223,7 @@ async function addPaytmWalletTranx(playerId, appId, order_id, m_id, txn_id, txn_
       values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, now()) RETURNING paytm_txn_id, player_id, app_id, order_id, m_id, txn_id, txn_amount, payment_mode, currency, txn_date, status, resp_code, resp_msg, gateway_name, bank_txn_id, bank_name, checksum;`,
       values: [playerId, appId, order_id, m_id, txn_id, txn_amount, payment_mode, currency, txn_date, status, resp_code, resp_msg, gateway_name, bank_txn_id, bank_name, checksum]
     };
-    let response = await pgConnect.executeQuery(query);
+    let response = await pgConnect.executeQuery('loyalty',query);
     logger.info('paytm wallet created successfully: ', response[0]);
     return response[0];
   } catch(err) {
@@ -239,7 +239,7 @@ async function paytmWalletTransactionUpdate(status, respCode, respMsg, gatewayNa
       where order_id = $12 RETURNING paytm_txn_id, player_id, app_id;`,
       values: [status, respCode, respMsg, gatewayName, bankTxnId, bankName, checksum, resp_text, txnId, paymentMode, txnDate, orderId]
     };
-    let response = await pgConnect.executeQuery(query);
+    let response = await pgConnect.executeQuery('loyalty',query);
     logger.info('paytm wallet transaction table updated for table: ', response[0]);
     return response[0];
   } catch(err) {
@@ -262,7 +262,7 @@ async function updateWalletTxnByOrderId(orderId, status, apTxnId, apTxnStatus, r
       text: queryString,
       values: [status, apTxnId, apTxnStatus, responseTxt, pgSource, pgTxnId, nzStatus, orderId]
     };
-    let response = pgConnect.executeQuery(query);
+    let response = pgConnect.executeQuery('loyalty',query);
     logger.info('update wallet transaction by order id: ', response[0]);
     return response[0];
   } catch(err) {
@@ -284,7 +284,7 @@ async function updateWalletTxnOrder(chmod, apTxnStatus, apTxnId, resStr, amount,
       values: [chmod, apTxnStatus, apTxnId, resStr, amount, currency, pgSource, pgTxnId, status, orderId]
     };
     logger.debug('query: ', query);
-    let response = await pgConnect.executeQuery(query);
+    let response = await pgConnect.executeQuery('loyalty',query);
     logger.info('update wallet transaction by order id: ', response);
     return response[0];
   } catch(err) {

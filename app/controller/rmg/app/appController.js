@@ -17,7 +17,7 @@ module.exports.getAppBySecretKey = async function(key) {
       values: [key]
     };
     logger.trace('query: ', query);
-    const response = await pgConnect.executeQuery(query);
+    const response = await pgConnect.executeQuery('loyalty',query);
     logger.info('app by secret key from db: ', response);
     return response[0];
   } catch (err) {
