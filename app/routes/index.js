@@ -11,6 +11,8 @@ const apiRoutes = express.Router();
 const apiRoutes_player = express.Router();
 const apiRoutes_login = express.Router();
 
+const apiRoutes_rmg = express.Router();
+
 //Module Wise Routes
 const appRoutes = require('../routes/loyalty/app/appRoutes');
 const walletRoutes = require('../routes/loyalty/wallet/walletRoutes');
@@ -19,6 +21,9 @@ const rewardRoutes = require('../routes/loyalty/rewards/rewardRoutes');
 const goodsRoutes = require('../routes/loyalty/goods/goodsRoute');
 const eventRoutes = require('../routes/loyalty/event/eventRoutes');
 const checkReferralRoutes = require('../routes/referral/checkReferralRoutes');
+
+// rmg wallet routes
+const walletRmgRoutes = require('../routes/rmg/walletRoutes');
 
 /* var io = require('socket.io').listen(4444); */
 var socketFunctions = require('../service/socketFunction');
@@ -46,7 +51,8 @@ app.use(middleware.injectMiddleware(
         apiRoutes_login.use('/rewards', rewardRoutes),
         apiRoutes_login.use('/goods', goodsRoutes),
         apiRoutes_login.use('/event', eventRoutes),
-        apiRoutes_player.use('/checkReferral', checkReferralRoutes)
+        apiRoutes_player.use('/checkReferral', checkReferralRoutes),
+        apiRoutes_rmg.use('/wallet', walletRmgRoutes)
     ]
 ));
 

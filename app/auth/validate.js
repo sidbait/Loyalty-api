@@ -85,3 +85,60 @@ module.exports = {
         }
     }
 }
+
+module.exports.validateAppSecretRmg = async (req, res, next) => {
+    try {
+      let key = req.headers['x-nazara-app-secret-key'];
+      const app = await appCtrl.getAppBySecretKey(key);
+      logger.info(app);
+      if (app && app.app_id) {
+        res.locals.app = app;
+        return next();
+      } else {
+        // return next(err);
+        throw({statusCode: 401, message: `Invalid app secret key.`});
+      }
+  
+    } catch (err) {
+      // return err;
+      // return next(err);
+      logger.error(err);
+      res.status(err.statusCode).send({
+        success: false,
+        message: err.message,
+        data: ''
+      });
+    }
+  };
+  
+  module.exports.validateAccessToken = async (req, res, next) => {
+    try {
+      logger.info('validate access token for a player.');
+      // logger.debug('header: ', req.headers);
+      let token = req.headers['authorization'] ? req.headers['authorization'] : '';
+      logger.info('token passed:', token);
+      if (!token || token == '') {
+        throw({statusCode: 401, message: `Unauthorized`});
+      }
+      // logger.info('token passed:', typeof token);
+      let sliceToken = token.slice(6);
+      // decrypt access token send.
+      let decryptToken = jwtToken.decryptAccessToken(sliceToken);
+      logger.info('decrypt access token :', decryptToken);
+      // decode access token send in headers.
+      let decoded = jwtToken.decodeAccessToken(decryptToken);
+      logger.info('decoded from access token:', decoded);
+      if (decoded.data.PlayerId) {
+        //TODO: verify player id by db call.
+        res.locals.app.player_id = decoded.data.PlayerId;
+        next();
+      }
+    } catch(err) {
+      logger.error('error while validating access token: ', err);
+      res.status(err.statusCode).send({
+        success: false,
+        message: err.message,
+        data: ''
+      });
+    }
+  };
