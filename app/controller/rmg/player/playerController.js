@@ -89,7 +89,7 @@ createDevice = async function(player_id, app_id, device_id, fcmToken) {
 const getPlayerById = async function(playerId) {
   try {
     let query = {
-      text: `select * from tbl_player where player_id = $1 and status IN ('ACTIVE','STKUSER') limit 1;`,
+      text: `select * from tbl_player_master where player_id = $1 and status IN ('ACTIVE','STKUSER') limit 1;`,
       values: [playerId]
     };
     let player = await pgConnect.executeQuery('loyalty',query);

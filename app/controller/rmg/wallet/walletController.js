@@ -32,30 +32,30 @@ async function creditWallet(airpayToken, amount, orderId, nzTxnEvent, nzTxnEvent
       pgSource = 'AIRPAY';
     }
     // Get player details from 
-    let player = await playerController.getPlayerById(app.player_id);
+    let player = await playerController.getPlayerById(app.playerId);
     // logger.debug('player details:', player);
     // check balance type
     // depanding on balance need to perform operation.
     if (balance_type == 'WINNING') {
       logger.trace('transaction for winning balance type.');
       // add record into 'tbl_wallet_transaction' table.
-      let walletTranx = await walletBalanceController.addWalletTransaction(app.app_id, app.player_id, orderId, player.phone_number, amount, '', '', '', '', 'SUCCESS', '', '', '', nzTxnType, '', '', pgSource, pgTxnId, 'SUCCESS', nzTxnEvent, nzTxnEventId, nzTxnEventName, '0', channel);
+      let walletTranx = await walletBalanceController.addWalletTransaction(app.appId, app.playerId, orderId, player.mobile_number, amount, '', '', '', '', 'SUCCESS', '', '', '', nzTxnType, '', '', pgSource, pgTxnId, 'SUCCESS', nzTxnEvent, nzTxnEventId, nzTxnEventName, '0', channel);
       // credit winning balance for player.
-      let creditWallet = await walletBalanceController.creditWinningBalance(app.player_id, walletTranx.wallet_txn_id, 'CREDIT', '', walletTranx.amount);
-      walletBalance = Number(playerBalance.reward_balance) + Number(playerBalance.winning_balance) + Number(playerBalance.deposit_balance);
+      let creditWallet = await walletBalanceController.creditWinningBalance(app.appId, app.playerId, walletTranx.wallet_txn_id, 'CREDIT', 0, walletTranx.amount);
+      walletBalance = Number(creditWallet.reward_balance) + Number(creditWallet.winning_balance) + Number(creditWallet.deposit_balance);
       // update wallet credit queue 
-      walletCreditQueueCtrl.updateSuccess(orderId, app.player_id, nzTxnEventId);
+      walletCreditQueueCtrl.updateSuccess(orderId, app.playerId, nzTxnEventId);
     } else {
       logger.trace('transaction for reward balance type.');
       // get player wallet balance details.
-      playerBalance = await playerController.getPlayerWalletBalance(app.player_id);
+      playerBalance = await playerController.getPlayerWalletBalance(app.playerId);
       walletBalance = Number(playerBalance.reward_balance) + Number(playerBalance.winning_balance) + Number(playerBalance.deposit_balance);
       // add record into 'tbl_wallet_transaction' table.
-      let walletTranx = await walletBalanceController.addWalletTransaction(app.app_id, app.player_id, orderId, player.phone_number, amount, '', '', '', '', 'SUCCESS', '', '', '', nzTxnType, walletBalance, '', pgSource, pgTxnId, 'SUCCESS', nzTxnEvent, nzTxnEventId, nzTxnEventName, amount, channel);
+      let walletTranx = await walletBalanceController.addWalletTransaction(app.appId, app.playerId, orderId, player.phone_number, amount, '', '', '', '', 'SUCCESS', '', '', '', nzTxnType, walletBalance, '', pgSource, pgTxnId, 'SUCCESS', nzTxnEvent, nzTxnEventId, nzTxnEventName, amount, channel);
       // credit reward balance for a player.
-      let wallet = await walletBalanceController.creditRewardBalance(app.player_id, walletTranx.wallet_txn_id, 'CREDIT', 0, amount);
+      let wallet = await walletBalanceController.creditRewardBalance(app.appId, app.playerId, walletTranx.wallet_txn_id, 'CREDIT', 0, amount);
       // update wallet credit queue 
-      walletCreditQueueCtrl.updateSuccess(orderId, app.player_id, nzTxnEventId);
+      walletCreditQueueCtrl.updateSuccess(orderId, app.playerId, nzTxnEventId);
     }
 
     responseObj = {
@@ -93,9 +93,9 @@ async function debitWallet(airpay_token, amount, order_id, nz_txn_event, nz_txn_
       nz_txn_type = 'DEBIT';
     }
     // Get player details from db.
-    let player = await playerController.getPlayerById(app.player_id);
+    let player = await playerController.getPlayerById(app.playerId);
     // get wallet balance for a player.
-    let balance = await playerController.getPlayerWalletBalance(app.player_id);
+    let balance = await playerController.getPlayerWalletBalance(app.playerId);
 
     // check balance type and do operation accordingly.
     if (balance_type == 'WITHDRAW') {
@@ -119,22 +119,22 @@ async function debitWallet(airpay_token, amount, order_id, nz_txn_event, nz_txn_
     if (flag) {
       if (amountToDebit == 0) {
         // create wallet transaction record in db.
-        let walletTranx = await walletBalanceController.addWalletTransaction(app.app_id, app.player_id, order_id, app.phone_number, amountToDebit, 'INR', '', '', '', 'SUCCESS', order_id, '200', '', nz_txn_type, '', '', pg_source, pg_txn_id, 'SUCCESS', nz_txn_event, nz_txn_event_id, nz_txn_event_name, bonusAmount, channel);
+        let walletTranx = await walletBalanceController.addWalletTransaction(app.appId, app.playerId, order_id, app.phone_number, amountToDebit, 'INR', '', '', '', 'SUCCESS', order_id, '200', '', nz_txn_type, '', '', pg_source, pg_txn_id, 'SUCCESS', nz_txn_event, nz_txn_event_id, nz_txn_event_name, bonusAmount, channel);
         logger.debug('wallet transaction created successfully:');
         // debit all wallet balance type.
-        let balResponse = await walletBalanceController.debitAllBalance(balance, amount, app.player_id, walletTranx.wallet_txn_id, 'DEBIT');
+        let balResponse = await walletBalanceController.debitAllBalance(balance, amount, app.playerId, walletTranx.wallet_txn_id, 'DEBIT');
 
         walletBalance = Number(balResponse.reward_balance) + Number(balResponse.winning_balance) + Number(balResponse.deposit_balance);
       } else {
-        let walletTranx = await walletBalanceController.addWalletTransaction(app.app_id, app.player_id, order_id, app.phone_number, amountToDebit, 'INR', '', '', '', 'SUCCESS', order_id, '200', '', nz_txn_type, '', '', pg_source, pg_txn_id, 'SUCCESS', nz_txn_event, nz_txn_event_id, nz_txn_event_name, bonusAmount, channel);
+        let walletTranx = await walletBalanceController.addWalletTransaction(app.appId, app.playerId, order_id, app.phone_number, amountToDebit, 'INR', '', '', '', 'SUCCESS', order_id, '200', '', nz_txn_type, '', '', pg_source, pg_txn_id, 'SUCCESS', nz_txn_event, nz_txn_event_id, nz_txn_event_name, bonusAmount, channel);
         logger.debug('wallet transaction created successfully:');
         let balResponse;
         if (balance_type == 'WITHDRAW') {
           // debit winining balance.
-          balResponse = await walletBalanceController.debitWinningBalance(app.player_id, walletTranx.amount, walletTranx.wallet_txn_id, 'WITHDRAW');
+          balResponse = await walletBalanceController.debitWinningBalance(app.playerId, walletTranx.amount, walletTranx.wallet_txn_id, 'WITHDRAW');
         } else if (balance_type == 'DEBIT') {
           // debit all balance.
-          balResponse = await walletBalanceController.debitAllBalance(balance, amount, app.player_id, walletTranx.wallet_txn_id, 'DEBIT');
+          balResponse = await walletBalanceController.debitAllBalance(balance, amount, app.playerId, walletTranx.wallet_txn_id, 'DEBIT');
         }
         walletBalance = Number(balResponse.reward_balance) + Number(balResponse.winning_balance) + Number(balResponse.deposit_balance);
 
@@ -212,13 +212,13 @@ async function paytmCreate(app, query) {
       channel
     } = query;
     logger.info('add wallet transaction for paytm');
-    let walletTranx = await walletBalanceController.addWalletTransaction(app.app_id, app.player_id, order_id, mobile, amount, currency, ip_address, device_id, user_agent, status, ap_txn_id, ap_txn_status, response_txt, txn_type, wallet_balance, comment, pg_source, pg_txn_id, 'PENDING', nz_txn_event, nz_txn_event_id, nz_txn_event_name, 0, channel);
+    let walletTranx = await walletBalanceController.addWalletTransaction(app.appId, app.playerId, order_id, mobile, amount, currency, ip_address, device_id, user_agent, status, ap_txn_id, ap_txn_status, response_txt, txn_type, wallet_balance, comment, pg_source, pg_txn_id, 'PENDING', nz_txn_event, nz_txn_event_id, nz_txn_event_name, 0, channel);
 
     logger.debug('wallet transaction created successfully for paytm.');
 
     if (pg_source == 'PAYTM') {
       logger.info('pg_source paytm is been passed.');
-      let paytmWalletTranx = await walletBalanceController.addPaytmWalletTranx(app.player_id, app.app_id, order_id, m_id, txn_id, amount, payment_mode, currency, txn_date, status, resp_code, resp_msg, gateway_name, bank_txn_id, bank_name, checksum);
+      let paytmWalletTranx = await walletBalanceController.addPaytmWalletTranx(app.playerId, app.appId, order_id, m_id, txn_id, amount, payment_mode, currency, txn_date, status, resp_code, resp_msg, gateway_name, bank_txn_id, bank_name, checksum);
       logger.info('paytm wallet transaction created successfully.', paytmWalletTranx);
 
     } 
@@ -236,12 +236,12 @@ async function paytmCreate(app, query) {
 async function playerWalletBalDetail(app) {
   try {
     logger.info('get complete player details...! ');
-    let playerDetail = await playerController.getPlayerDetailsById(app.player_id);
+    let playerDetail = await playerController.getPlayerDetailsById(app.playerId);
     logger.debug('get player detail successfully.');
     if (!playerDetail || !playerDetail.player_id) {
       throw({statusCode: 401, message: 'Unauthorized'});
     }
-    let walletBalance = await playerController.getPlayerWalletBalance(app.player_id);
+    let walletBalance = await playerController.getPlayerWalletBalance(app.playerId);
     logger.debug('get players wallet balance successfully.');
     responseObj = {
       TRANSACTION: {
@@ -293,7 +293,7 @@ async function paytmWalletUpdate(app, orderId) {
           logger.info('wallet transaction updated successfully.');
 
           // update wallet for deposit
-          let walletBal = await walletBalanceController.creditDepositBalance(app.player_id, walletDetail.wallet_txn_id, 'DEPOSIT', 0, walletDetail.amount);
+          let walletBal = await walletBalanceController.creditDepositBalance(app.playerId, walletDetail.wallet_txn_id, 'DEPOSIT', 0, walletDetail.amount);
           logger.debug('credited deposit balance successfully. ');
 
         } else if (paytmTxn.status == 'TXN_SUCCESS' || paytmTxn.STATUS == 'TXN_FAILURE') {

@@ -25,8 +25,8 @@ async function addWalletTransaction(appId, playerId, orderId, mobileNo, amount, 
 
     //TODO: channel was remove in creation, need to confirm if required or have been removed.
     let query = {
-      text: `insert into tbl_wallet_transaction (app_id, player_id, order_id, mobile_no, amount, currency, ip_address, device_id, user_agent, nz_txn_status, ap_txn_id, ap_txn_status, response_txt, nz_txn_type, wallet_balance, comment, pg_source, pg_txn_id, created_at, updated_at, nz_txn_event, nz_txn_event_id, nz_txn_event_name, cash_bonus)
-      values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, now(), now(), $19, $20, $21, $22) RETURNING tbl_wallet_transaction.*;`,
+      text: `insert into tbl_wallet_transaction_rmg (app_id, player_id, order_id, mobile_no, amount, currency, ip_address, device_id, user_agent, nz_txn_status, ap_txn_id, ap_txn_status, response_txt, nz_txn_type, wallet_balance, comment, pg_source, pg_txn_id, created_at, updated_at, nz_txn_event, nz_txn_event_id, nz_txn_event_name, cash_bonus)
+      values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, now(), now(), $19, $20, $21, $22) RETURNING tbl_wallet_transaction_rmg.*;`,
       values: [appId, playerId, orderId, mobileNo, amount, currency, ipAddress, deviceId, userAgent, status, apTxnId, apTxnStatus, responseTxt, txnType, WalletBalance, comment, pgSource, pgTxnId, nzTxnEvent, nzTxnEventId, nzTxnEventName, bonus]
     };
     let tranx = await pgConnect.executeQuery('loyalty',query);
@@ -40,22 +40,22 @@ async function addWalletTransaction(appId, playerId, orderId, mobileNo, amount, 
   }
 };
 
-async function creditRewardBalance(playerId, txnId, txnType, walletBalance, amount) {
+async function creditRewardBalance(appId, playerId, txnId, txnType, walletBalance, amount) {
   try {
     logger.log('amount', amount);
     logger.log('amount', typeof amount);
     amount = Number(amount);
     let query = {
-      text: `insert into tbl_wallet_balance(player_id, winning_balance, reward_balance, deposit_balance, created_at, updated_at)
-      values($1, 0, $2, 0, NOW(), NOW())
-      ON CONFLICT (player_id)
-      DO UPDATE SET reward_balance = excluded.reward_balance + (select reward_balance from tbl_wallet_balance where player_id = $1), updated_at = NOW()
+      text: `insert into tbl_wallet_balance(app_id, player_id, winning_balance, reward_balance, deposit_balance, created_at, updated_at)
+      values($1, $2, 0, $3, 0, NOW(), NOW())
+      ON CONFLICT (player_id, app_id)
+      DO UPDATE SET reward_balance = excluded.reward_balance + (select reward_balance from tbl_wallet_balance where player_id = $2 and app_id = $1), updated_at = NOW()
       returning *;`,
-      values: [playerId, amount]
+      values: [appId, playerId, amount]
     };
     let balance = await pgConnect.executeQuery('loyalty',query);
     logger.info('credit reward balanace into db: ', balance[0]);
-    let log = await addLog(playerId, balance, txnId, txnType, walletBalance, amount);
+    let log = await addLog(appId, playerId, balance, txnId, txnType, walletBalance, amount);
     // logger.info('log created for wallet balance:', log);
     return balance[0];
   } catch (err) {
@@ -63,27 +63,28 @@ async function creditRewardBalance(playerId, txnId, txnType, walletBalance, amou
   }
 };
 
-async function creditWinningBalance(playerId, txnId, txnType, walletBalance, amount) {
+async function creditWinningBalance(appId, playerId, txnId, txnType, walletBalance, amount) {
   try {
     let query = {
-      text: `insert into tbl_wallet_balance(player_id, winning_balance, reward_balance, deposit_balance, created_at, updated_at) values($1, $2, 0, 0, NOW(), NOW())
-      ON CONFLICT (player_id)
-      DO UPDATE SET winning_balance = excluded.winning_balance + (select winning_balance from tbl_wallet_balance where player_id = $1), updated_at = NOW() returning *;`,
-      values: [playerId, amount]
+      text: `insert into tbl_wallet_balance(app_id, player_id, winning_balance, reward_balance, deposit_balance, created_at, updated_at) values($1, $2, $3, 0, 0, NOW(), NOW())
+      ON CONFLICT (player_id, app_id)
+      DO UPDATE SET winning_balance = excluded.winning_balance + (select winning_balance from tbl_wallet_balance where player_id = $2 and app_id = $1), updated_at = NOW() returning *;`,
+      values: [appId, playerId, amount]
     };
-    let creditBalance = await pgConnect.executeQuery('loyalty',query);
+    let creditBalance = await pgConnect.executeQuery('loyalty', query);
     logger.info('credited winning balance for a player into db: ', creditBalance[0]);
 
     // add log
-    let log = await addLog(playerId, creditBalance, txnId, txnType, walletBalance, amount);
+    let log = await addLog(appId, playerId, creditBalance, txnId, txnType, walletBalance, amount);
     logger.info('log created for wallet balance:', log[0]);
     return creditBalance[0];
   } catch(err) {
+    logger.error(err);
     throw new Error(err);
   }
 };
 
-async function creditDepositBalance(playerId, txnId, txnType, walletBalance, amount) {
+async function creditDepositBalance(appId, playerId, txnId, txnType, walletBalance, amount) {
   try {
     let query = {
       text: `insert into tbl_wallet_balance(player_id, winning_balance, reward_balance, deposit_balance, created_at, updated_at)
@@ -96,7 +97,7 @@ async function creditDepositBalance(playerId, txnId, txnType, walletBalance, amo
     let creditDeposit = await pgConnect.executeQuery('loyalty',query);
     logger.info('credited deposit balance for a player into db: ', creditDeposit[0]);
     // add log
-    let log = await addLog(playerId, creditDeposit[0], txnId, txnType, walletBalance, amount);
+    let log = await addLog(appId, playerId, creditDeposit[0], txnId, txnType, walletBalance, amount);
     logger.info('log created for wallet balance:');
     return creditDeposit[0];
   } catch(err) {
@@ -105,18 +106,19 @@ async function creditDepositBalance(playerId, txnId, txnType, walletBalance, amo
   }
 };
 
-async function addLog(playerId, balance, txnId, txnType, walletBalance, amount) {
+async function addLog(appId, playerId, balance, txnId, txnType, walletBalance, amount) {
   try {
     let query = {
       text: `insert into tbl_wallet_balance_log
-      (player_id, txn_id, txn_type, amount, reward_balance, deposit_balance, winning_balance, wallet_balance, created_at)
-      values($1,$2,$3,$4,$5,$6,$7,$8,NOW()) returning *;`,
-      values: [playerId, txnId, txnType, amount, balance.reward_balance, balance.deposit_balance, balance.winning_balance, walletBalance]
+      (app_id, player_id, txn_id, txn_type, amount, reward_balance, deposit_balance, winning_balance, wallet_balance, created_at)
+      values($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) returning *;`,
+      values: [appId, playerId, txnId, txnType, amount, balance.reward_balance, balance.deposit_balance, balance.winning_balance, walletBalance]
     };
-    let logCreated = await pgConnect.executeQuery('loyalty',query);
+    let logCreated = await pgConnect.executeQuery('loyalty', query);
     logger.info('log created for wallet balance:', logCreated[0]);
     return logCreated[0];
   } catch (err) {
+    logger.error('wallet balance log error:', err);
     throw new Error(err);
   }
 }

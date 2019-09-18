@@ -52,7 +52,7 @@ app.use(middleware.injectMiddleware(
         apiRoutes_login.use('/goods', goodsRoutes),
         apiRoutes_login.use('/event', eventRoutes),
         apiRoutes_player.use('/checkReferral', checkReferralRoutes),
-        apiRoutes_rmg.use('/wallet', walletRmgRoutes)
+        apiRoutes_rmg.use('/rmg/wallet', walletRmgRoutes)
     ]
 ));
 
@@ -71,6 +71,7 @@ app.use(middleware.injectMiddleware(
 app.use(apiRoutes)
 app.use(apiRoutes_login)
 app.use(apiRoutes_player)
+app.use(apiRoutes_rmg);
 
 module.exports = app;
 
