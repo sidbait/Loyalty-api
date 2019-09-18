@@ -122,7 +122,7 @@ async function debitWallet(airpay_token, amount, order_id, nz_txn_event, nz_txn_
         let walletTranx = await walletBalanceController.addWalletTransaction(app.appId, app.playerId, order_id, app.phone_number, amountToDebit, 'INR', '', '', '', 'SUCCESS', order_id, '200', '', nz_txn_type, '', '', pg_source, pg_txn_id, 'SUCCESS', nz_txn_event, nz_txn_event_id, nz_txn_event_name, bonusAmount, channel);
         logger.debug('wallet transaction created successfully:');
         // debit all wallet balance type.
-        let balResponse = await walletBalanceController.debitAllBalance(balance, amount, app.playerId, walletTranx.wallet_txn_id, 'DEBIT');
+        let balResponse = await walletBalanceController.debitAllBalance(balance, amount, app.appId, app.playerId, walletTranx.wallet_txn_id, 'DEBIT');
 
         walletBalance = Number(balResponse.reward_balance) + Number(balResponse.winning_balance) + Number(balResponse.deposit_balance);
       } else {
@@ -134,7 +134,7 @@ async function debitWallet(airpay_token, amount, order_id, nz_txn_event, nz_txn_
           balResponse = await walletBalanceController.debitWinningBalance(app.playerId, walletTranx.amount, walletTranx.wallet_txn_id, 'WITHDRAW');
         } else if (balance_type == 'DEBIT') {
           // debit all balance.
-          balResponse = await walletBalanceController.debitAllBalance(balance, amount, app.playerId, walletTranx.wallet_txn_id, 'DEBIT');
+          balResponse = await walletBalanceController.debitAllBalance(balance, amount,  app.appId, app.playerId, walletTranx.wallet_txn_id, 'DEBIT');
         }
         walletBalance = Number(balResponse.reward_balance) + Number(balResponse.winning_balance) + Number(balResponse.deposit_balance);
 

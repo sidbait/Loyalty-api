@@ -62,8 +62,11 @@ walletRouter.post('/credit', async (req, res) => {
 walletRouter.post('/debit', async (req, res) => {
   try {
     logger.info('in wallet debit routers.');
-    const {app} = res.locals;
-    logger.info('app', app);
+    // const {app} = res.locals;
+    // logger.info('app', app);
+    logger.info(req.appId);
+    logger.info(req.userDetails);
+    const app = req.userDetails;
     const checksum = req.headers['checksum'];
     let secretKey = req.headers['x-nazara-app-secret-key'];
     let {
@@ -81,10 +84,10 @@ walletRouter.post('/debit', async (req, res) => {
     } = req.query;
     logger.debug('amount passed in query:', amount);
     //TODO: validate checksum if valid then, credit wallet transaction.
-    let param1 = `${airpay_token}$${order_id}$${amount}$DEBIT`;
-    if (!validateChecksum(checksum, param1, secretKey, app.app_id)) {
-      throw({statusCode: 401, message: `Invalid Checksum.`});
-    }
+    // let param1 = `${airpay_token}$${order_id}$${amount}$DEBIT`;
+    // if (!validateChecksum(checksum, param1, secretKey, app.app_id)) {
+    //   throw({statusCode: 401, message: `Invalid Checksum.`});
+    // }
     // wallet transaction.
     let response = await walletController.debitWallet(airpay_token, amount, order_id, nz_txn_event, nz_txn_event_id, nz_txn_event_name, nz_txn_type, balance_type, pg_source, channel, app, pg_txn_id);
     logger.info('response for wallet debit transaction: ', response);

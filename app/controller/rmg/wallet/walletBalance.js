@@ -123,7 +123,7 @@ async function addLog(appId, playerId, balance, txnId, txnType, walletBalance, a
   }
 }
 
-async function debitAllBalance(wBal, amount, playerId, txnId, txnType) {
+async function debitAllBalance(wBal, amount, appId, playerId, txnId, txnType) {
   try {
     logger.info('txnId:', txnId , 'txnType:', txnType);
     let bal = {...wBal};
@@ -166,14 +166,14 @@ async function debitAllBalance(wBal, amount, playerId, txnId, txnType) {
     let query = {
       text: `update tbl_wallet_balance 
 			set winning_balance = $1, deposit_balance = $2, reward_balance = $3
-			where player_id = $4 returning *;`,
-      values: [bal.winning_balance, bal.deposit_balance, bal.reward_balance, playerId]
+			where player_id = $4 and app_id = $5 returning *;`,
+      values: [bal.winning_balance, bal.deposit_balance, bal.reward_balance, playerId, appId]
     };
     let debitAll = await pgConnect.executeQuery('loyalty',query);
     logger.info('Debited all wallet balance type:', debitAll[0]);
 
     // add log.
-    let log = await addLog(playerId, debitAll, txnId, txnType, amountPass);
+    let log = await addLog(appId, playerId, debitAll, txnId, txnType, amountPass);
     logger.info('log created for wallet balance:', log)
     return debitAll[0];
   } catch(err) {
@@ -203,7 +203,7 @@ async function debitWinningBalance(playerId, amount, txnId, txyType) {
 async function udpateWalletTxnStatus(walletTxnId, status, walletBalance) {
   try {
     let query = {
-      text: `update tbl_wallet_transaction set 
+      text: `update tbl_wallet_transaction_rmg set 
       updated_at = NOW(), nz_txn_status = ?, wallet_balance = ? 
       where wallet_txn_id = ? RETURNING tbl_wallet_transaction.*;`,
       values: [status, walletBalance, walletTxnId]
