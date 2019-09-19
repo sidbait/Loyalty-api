@@ -7,7 +7,7 @@ const consoleLog = require('../service/consoleLog.js');
 
 const redis = require('./redisConnection');
 
-const pool_loyalty = new pg.Pool(config.db_connectionString.pg.pg_loyalty);
+const pool_loyalty = new pg.Pool(config.db_connectionString.pg.pg_loyalty_local);
 
 module.exports = {
 

@@ -26,6 +26,13 @@
         "min": 10,
         "idleTimeoutMillis": 500000
       },
+      "pg_loyalty_local": {
+        "user": "postgres",
+        "password": "admin",
+        "database": "loyalty",
+        "host": "localhost",
+        "port": 5434
+      },
       "pg_loyalty1": {
         "user": "rmg_admin",
         "password": "zw6aBw6GXrjV8MSURYfw",
@@ -51,5 +58,18 @@
     "secretAccessKey": "",
     "accessKeyId": "",
     "region": "ap-south-1"
+  },
+  "paytm": {
+    "merchantGuid": "NATEPL65232371877058",
+    "merchantkey": "JkDcQ#M1zfjbm8uE",
+    "salesWalletGuid": "629b9b2a-7b95-11e8-8f13-52540059b2ee",
+    "url1": "https://securegw-stage.paytm.in/theia/processTransaction",
+    "url": "https://trust-uat.paytm.in"
+  },
+  "paytmDeposit": {
+    "name" : "Next Wave Test Account",
+    "PAYTM_MERCHANT_KEY": "JkDcQ#M1zfjbm8uE",
+    "paramarray": "NATEPL65232371877058",
+    "url": "https://securegw-stage.paytm.in/merchant-status/getTxnStatus?JsonData="
   }
 }

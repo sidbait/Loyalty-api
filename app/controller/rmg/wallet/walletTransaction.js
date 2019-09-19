@@ -3,7 +3,8 @@ const logger = require('tracer').colorConsole();
 // const pgConnect = require('../../model/pgConnections');
 const pgConnect = require('../../../model/pgConnection');
 const rp = require('request-promise');
-const walletTranxHistory = async (playerId, page, limit) => {
+
+const walletTranxHistory = async (appId, playerId, page, limit) => {
   try {
 
     if (page == '' || page == undefined) {
@@ -16,8 +17,8 @@ const walletTranxHistory = async (playerId, page, limit) => {
 
     let query = {
       text: `SELECT wallet_txn_id, app_id, player_id, order_id, txn_type, "comment", total_balance, wallet_balance, mobile_no, amount as real_cash, cash_bonus, (amount::DECIMAL + cash_bonus::DECIMAL) as amount, currency, ip_address, device_id, user_agent, "status", ap_txn_id, ap_txn_status, response_txt, 
-	created_at, updated_at, bank_name, chmod, pg_source, pg_txn_id, nz_txn_type, nz_txn_status, nz_txn_event, nz_txn_event_id, nz_txn_event_name, created_at::DATE created_dt FROM tbl_wallet_transaction where player_id = $1 and nz_txn_type not in ('RECON_DEBIT','RECON_CREDIT') and amount ~ '^[0-9\.]+$' = true order by updated_at desc LIMIT $2 OFFSET $3`,
-      values: [playerId, limit, page]
+	created_at, updated_at, bank_name, chmod, pg_source, pg_txn_id, nz_txn_type, nz_txn_status, nz_txn_event, nz_txn_event_id, nz_txn_event_name, created_at::DATE created_dt FROM tbl_wallet_transaction_rmg where app_id = $4 and player_id = $1 and nz_txn_type not in ('RECON_DEBIT','RECON_CREDIT') and amount ~ '^[0-9\.]+$' = true order by updated_at desc LIMIT $2 OFFSET $3`,
+      values: [playerId, limit, page, appId]
     };
     let response = await pgConnect.executeQuery('loyalty',query);
     logger.info('Fetch wallet transaction for a player:', response.length);
@@ -30,7 +31,7 @@ const walletTranxHistory = async (playerId, page, limit) => {
 const getWalletTxnByOrderId = async (orderId) => {
   try {
     let query = {
-      text: `select * from tbl_wallet_transaction where order_id = $1;`,
+      text: `select * from tbl_wallet_transaction_rmg where order_id = $1;`,
       values: [orderId]
     };
     let response = await pgConnect.executeQuery('loyalty',query);

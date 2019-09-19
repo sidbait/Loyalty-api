@@ -117,6 +117,28 @@ const getPlayerDetailsById = async function(playerId) {
   }
 };
 
+/*
+* To get player details as per loyalty db structure.
+* 
+*/
+const getPlayerDetailsByApp = async function(playerId, appId) {
+  try {
+    let query = {
+      text: `select pm.*, pa.device_id, pa.fcm_id, pa.app_user_name, pa.app_email_id, pa.app_fb_id, pa.app_google_id 
+      from tbl_player_master pm
+      left join tbl_player_app pa on pa.player_id = pm.player_id and pa.app_id = $2
+      where pm.player_id = $1 and pm.status IN ('ACTIVE','STKUSER')  limit 1;`,
+      values: [playerId, appId]
+    };
+    let playerDetails = await pgConnect.executeQuery('loyalty', query);
+    logger.info('player details based on app by player id: ', playerDetails[0]);
+    return playerDetails[0];
+  } catch(err) {
+    logger.error(err);
+    throw new Error(err);
+  };
+};
+
 getPlayerFullDetailByPhone = async function(playerId, mobile) {
   try {
     let query = {
@@ -137,7 +159,7 @@ getPlayerFullDetailByPhone = async function(playerId, mobile) {
   }
 };
 
-const getPlayerWalletBalance = async function(playerId) {
+const getPlayerWalletBalance = async function(playerId, appId) {
   try {
     let query = {
       text: `SELECT b.player_id, 
@@ -147,10 +169,10 @@ const getPlayerWalletBalance = async function(playerId) {
       case when w.reward_balance is null then 0 else w.reward_balance end as reward_balance
       from tbl_wallet_balance w
       left join tbl_bonus b on w.player_id = b.player_id
-      where w.player_id = $1 limit 1;`,
-      values: [playerId]
+      where w.player_id = $1 and w.app_id = $2 limit 1;`,
+      values: [playerId, appId]
     };
-    let response = await pgConnect.executeQuery('loyalty',query);
+    let response = await pgConnect.executeQuery('loyalty', query);
     logger.info('player wallet balance details:', response[0]);
     return response[0];
   } catch(err) {
@@ -271,5 +293,6 @@ module.exports = {
   firePixel,
   getPlayerWalletBalance,
   getPlayerDetailsById,
-  updatePlayer
+  updatePlayer,
+  getPlayerDetailsByApp
 };

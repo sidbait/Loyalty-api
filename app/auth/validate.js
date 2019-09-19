@@ -43,7 +43,7 @@ module.exports = {
     },
 
     validateAppSecret: async (req, res, next) => {
-
+      logger.info('validated app secret:')
         let rules = {
             "x-naz-app-key": 'required',
         };
@@ -111,7 +111,7 @@ module.exports.validateAppSecretRmg = async (req, res, next) => {
     }
   };
   
-  module.exports.validateAccessToken = async (req, res, next) => {
+  module.exports.validateAccessTokenRmg = async (req, res, next) => {
     try {
       logger.info('validate access token for a player.');
       // logger.debug('header: ', req.headers);

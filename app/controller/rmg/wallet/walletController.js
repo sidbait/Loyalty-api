@@ -236,17 +236,17 @@ async function paytmCreate(app, query) {
 async function playerWalletBalDetail(app) {
   try {
     logger.info('get complete player details...! ');
-    let playerDetail = await playerController.getPlayerDetailsById(app.playerId);
+    let playerDetail = await playerController.getPlayerDetailsByApp(app.playerId);
     logger.debug('get player detail successfully.');
     if (!playerDetail || !playerDetail.player_id) {
       throw({statusCode: 401, message: 'Unauthorized'});
     }
-    let walletBalance = await playerController.getPlayerWalletBalance(app.playerId);
+    let walletBalance = await playerController.getPlayerWalletBalance(app.playerId, app.appId);
     logger.debug('get players wallet balance successfully.');
     responseObj = {
       TRANSACTION: {
         'TRANSACTIONSTATUS': '200',
-        'USERNAME': playerDetail.phone_number,
+        'USERNAME': playerDetail.mobile_number,
         'NZBonus': walletBalance.bonus,
         'WinningBalance': walletBalance.winning_balance,
         'RewardBalance': walletBalance.reward_balance,

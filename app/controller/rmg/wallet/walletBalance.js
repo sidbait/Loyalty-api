@@ -87,12 +87,12 @@ async function creditWinningBalance(appId, playerId, txnId, txnType, walletBalan
 async function creditDepositBalance(appId, playerId, txnId, txnType, walletBalance, amount) {
   try {
     let query = {
-      text: `insert into tbl_wallet_balance(player_id, winning_balance, reward_balance, deposit_balance, created_at, updated_at)
-      values($1, 0, 0, $2, NOW(), NOW())
-      ON CONFLICT (player_id)
+      text: `insert into tbl_wallet_balance(app_id, player_id, winning_balance, reward_balance, deposit_balance, created_at, updated_at)
+      values($1, $2, 0, 0, $3, NOW(), NOW())
+      ON CONFLICT (player_id, app_id)
       DO UPDATE SET deposit_balance = excluded.deposit_balance + (select deposit_balance from tbl_wallet_balance where player_id = $1), updated_at = NOW()
       returning *;`,
-      values: [playerId, amount]
+      values: [appId, playerId, amount]
     };
     let creditDeposit = await pgConnect.executeQuery('loyalty',query);
     logger.info('credited deposit balance for a player into db: ', creditDeposit[0]);
@@ -251,7 +251,7 @@ async function paytmWalletTransactionUpdate(status, respCode, respMsg, gatewayNa
 
 async function updateWalletTxnByOrderId(orderId, status, apTxnId, apTxnStatus, responseTxt, walletBalance, pgSource, pgTxnId, nzStatus) {
   try {
-    let queryString = `UPDATE tbl_wallet_transaction
+    let queryString = `UPDATE tbl_wallet_transaction_rmg
     SET  status= $1 ,  ap_txn_id = $2 , ap_txn_status = $3, response_txt = $4, pg_source = $5, pg_txn_id= $6, nz_txn_status = $7, `;
     if (walletBalance && walletBalance != '' && walletBalance != null) {
       queryString += `wallet_balance = '${walletBalance}', `;
@@ -274,7 +274,7 @@ async function updateWalletTxnByOrderId(orderId, status, apTxnId, apTxnStatus, r
 
 async function updateWalletTxnOrder(chmod, apTxnStatus, apTxnId, resStr, amount, currency, pgSource, pgTxnId, orderId, status) {
   try {
-    let queryString = `update tbl_wallet_transaction set chmod = $1, ap_txn_status = $2, ap_txn_id = $3, response_txt = $4, amount = $5, currency = $6, pg_source = $7, pg_txn_id= $8, updated_at = NOW(), status = $9, nz_txn_status = $9 where order_id = $10 RETURNING *;`;
+    let queryString = `update tbl_wallet_transaction_rmg set chmod = $1, ap_txn_status = $2, ap_txn_id = $3, response_txt = $4, amount = $5, currency = $6, pg_source = $7, pg_txn_id= $8, updated_at = NOW(), status = $9, nz_txn_status = $9 where order_id = $10 RETURNING *;`;
 
 
     if (apTxnId != '' && apTxnId != null && apTxnId) {

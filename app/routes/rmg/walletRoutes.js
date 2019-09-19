@@ -112,18 +112,21 @@ walletRouter.post('/debit', async (req, res) => {
 walletRouter.get('/history', async (req, res) => {
   try {
     logger.info('In wallet transaction history router.');
-    const {app} = res.locals;
-    logger.debug('app', app);
+    // const {app} = res.locals;
+    // logger.debug('app', app);
+    logger.info(req.appId);
+    logger.info(req.userDetails);
+    const app = req.userDetails;
     const checksum = req.headers['checksum'];
     let secretKey = req.headers['x-nazara-app-secret-key'];
     let {page, limit} = req.query;
-    let param1 = `${page}$${limit}`;
-    // validate checksum.
-    if (!validateChecksum(checksum, param1, secretKey, app.app_id)) {
-      throw({statusCode: 401, message: `Invalid Checksum.`});
-    }
+    // let param1 = `${page}$${limit}`;
+    // // validate checksum.
+    // if (!validateChecksum(checksum, param1, secretKey, app.app_id)) {
+    //   throw({statusCode: 401, message: `Invalid Checksum.`});
+    // }
     // fetch wallet transaction history for a player.
-    let tranxHistory = await walletTranx.walletTranxHistory(app.player_id, page, limit);
+    let tranxHistory = await walletTranx.walletTranxHistory(app.appId, app.playerId, page, limit);
     logger.info('fetched tranx history from db: ', tranxHistory.length);
     return res.status(200).send({
       success: 1,
@@ -146,8 +149,11 @@ walletRouter.get('/history', async (req, res) => {
 walletRouter.post('/paytm-create', async (req, res) => {
   try {
     logger.info('In paytm create route ......!');
-    const {app} = res.locals;
-    logger.info('app', app);
+    // const {app} = res.locals;
+    // logger.info('app', app);
+    logger.info(req.appId);
+    logger.info(req.userDetails);
+    const app = req.userDetails;
     const checksum = req.headers['checksum'];
 
     let response = await walletController.paytmCreate(app, req.query);
@@ -173,17 +179,20 @@ walletRouter.post('/paytm-create', async (req, res) => {
 walletRouter.post('/balance', async(req, res) => {
   try {
     logger.info('In wallet balance api route ......!');
-    const {app} = res.locals;
-    logger.info('app', app);
+    // const {app} = res.locals;
+    // logger.info('app', app);
+    logger.info(req.appId);
+    logger.info(req.userDetails);
+    const app = req.userDetails;
     const checksum = req.headers['checksum'];
     let secretKey = req.headers['x-nazara-app-secret-key'];
     let {airpay_token} = req.query;
 
     // validate checksum.
-    let param1 = `${airpay_token}`;
-    if (!validateChecksum(checksum, param1, secretKey, app.app_id)) {
-      throw({statusCode: 401, message: `Invalid Checksum.`});
-    }
+    // let param1 = `${airpay_token}`;
+    // if (!validateChecksum(checksum, param1, secretKey, app.app_id)) {
+    //   throw({statusCode: 401, message: `Invalid Checksum.`});
+    // }
 
     let balanceResponse = await walletController.playerWalletBalDetail(app);
     logger.info('get player wallet balance response: ', balanceResponse);
@@ -208,8 +217,11 @@ walletRouter.post('/balance', async(req, res) => {
 walletRouter.post('/paytm-update', async(req, res) => {
   try {
     logger.info('update paytm transaction record.');
-    const {app} = res.locals;
-    logger.info('app', app);
+    // const {app} = res.locals;
+    // logger.info('app', app);
+    logger.info(req.appId);
+    logger.info(req.userDetails);
+    const app = req.userDetails;
     const {order_id} = req.query;
     let updatedResponse = await walletController.paytmWalletUpdate(app, order_id);
     return res.status(200).jsonp({
