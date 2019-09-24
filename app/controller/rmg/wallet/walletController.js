@@ -48,7 +48,7 @@ async function creditWallet(airpayToken, amount, orderId, nzTxnEvent, nzTxnEvent
     } else {
       logger.trace('transaction for reward balance type.');
       // get player wallet balance details.
-      playerBalance = await playerController.getPlayerWalletBalance(app.playerId);
+      playerBalance = await playerController.getPlayerWalletBalance(app.playerId, app.appId);
       walletBalance = Number(playerBalance.reward_balance) + Number(playerBalance.winning_balance) + Number(playerBalance.deposit_balance);
       // add record into 'tbl_wallet_transaction' table.
       let walletTranx = await walletBalanceController.addWalletTransaction(app.appId, app.playerId, orderId, player.phone_number, amount, '', '', '', '', 'SUCCESS', '', '', '', nzTxnType, walletBalance, '', pgSource, pgTxnId, 'SUCCESS', nzTxnEvent, nzTxnEventId, nzTxnEventName, amount, channel);
@@ -95,7 +95,7 @@ async function debitWallet(airpay_token, amount, order_id, nz_txn_event, nz_txn_
     // Get player details from db.
     let player = await playerController.getPlayerById(app.playerId);
     // get wallet balance for a player.
-    let balance = await playerController.getPlayerWalletBalance(app.playerId);
+    let balance = await playerController.getPlayerWalletBalance(app.playerId, app.appId);
 
     // check balance type and do operation accordingly.
     if (balance_type == 'WITHDRAW') {
