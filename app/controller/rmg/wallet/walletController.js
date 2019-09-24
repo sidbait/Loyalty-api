@@ -278,12 +278,15 @@ async function paytmWalletUpdate(app, orderId) {
         logger.info('payment transaction status from paytm: ');
         // let toStrigify = paytmTxn;
         let jsonStr = JSON.stringify(paytmTxn);
+        // logger.trace(typeof paytmTxn);
+        paytmTxn = JSON.parse(paytmTxn);
+        // logger.trace(paytmTxn.STATUS)
         walletBalanceController.paytmWalletTransactionUpdate(paytmTxn.STATUS, paytmTxn.RESPCODE, paytmTxn.RESPMSG, paytmTxn.GATEWAYNAME, paytmTxn.BANKTXNID, paytmTxn.BANKNAME, "", paytmTxn.ORDERID, jsonStr, paytmTxn.TXNID, paytmTxn.PAYMENTMODE, paytmTxn.TXNDATE);
 
         //TODO: add to gateway webhook.
         webHookLogController.addWebHookLog(orderId, 'PAYTM', paytmTxn.TXNID, jsonStr);
         
-        paytmTxn = JSON.parse(paytmTxn);
+        // paytmTxn = JSON.parse(paytmTxn);
         // logger.info('paytm transaction status success',typeof paytmTxn);
         // If success update the status and add the balance to the wallet and credit the amount to the wallet.
         if (paytmTxn.status == 'TXN_SUCCESS' || paytmTxn.STATUS == 'TXN_SUCCESS') {
@@ -293,7 +296,7 @@ async function paytmWalletUpdate(app, orderId) {
           logger.info('wallet transaction updated successfully.');
 
           // update wallet for deposit
-          let walletBal = await walletBalanceController.creditDepositBalance(app.playerId, walletDetail.wallet_txn_id, 'DEPOSIT', 0, walletDetail.amount);
+          let walletBal = await walletBalanceController.creditDepositBalance(app.appId, app.playerId, walletDetail.wallet_txn_id, 'DEPOSIT', 0, walletDetail.amount);
           logger.debug('credited deposit balance successfully. ');
 
         } else if (paytmTxn.status == 'TXN_SUCCESS' || paytmTxn.STATUS == 'TXN_FAILURE') {

@@ -90,7 +90,7 @@ async function creditDepositBalance(appId, playerId, txnId, txnType, walletBalan
       text: `insert into tbl_wallet_balance(app_id, player_id, winning_balance, reward_balance, deposit_balance, created_at, updated_at)
       values($1, $2, 0, 0, $3, NOW(), NOW())
       ON CONFLICT (player_id, app_id)
-      DO UPDATE SET deposit_balance = excluded.deposit_balance + (select deposit_balance from tbl_wallet_balance where player_id = $1), updated_at = NOW()
+      DO UPDATE SET deposit_balance = excluded.deposit_balance + (select deposit_balance from tbl_wallet_balance where player_id = $2 and app_id = $1), updated_at = NOW()
       returning *;`,
       values: [appId, playerId, amount]
     };
@@ -236,12 +236,11 @@ async function addPaytmWalletTranx(playerId, appId, order_id, m_id, txn_id, txn_
 async function paytmWalletTransactionUpdate(status, respCode, respMsg, gatewayName, bankTxnId, bankName, checksum, orderId, resp_text, txnId, paymentMode, txnDate) {
   try {
     let query = {
-      text: `update tbl_wallet_paytm_txn set 
-      status = $1, resp_code = $2, resp_msg = $3, gateway_name = $4, bank_txn_id = $5, bank_name = $6, checksum = $7, resp_text = $8, updated_at = NOW(), txn_id = $9, payment_mode = $10, txn_date = $11
+      text: `update tbl_wallet_paytm_txn set status = $1, resp_code = $2, resp_msg = $3, gateway_name = $4, bank_txn_id = $5, bank_name = $6, checksum = $7, resp_text = $8, updated_at = NOW(), txn_id = $9, payment_mode = $10, txn_date = $11
       where order_id = $12 RETURNING paytm_txn_id, player_id, app_id;`,
       values: [status, respCode, respMsg, gatewayName, bankTxnId, bankName, checksum, resp_text, txnId, paymentMode, txnDate, orderId]
     };
-    let response = await pgConnect.executeQuery('loyalty',query);
+    let response = await pgConnect.executeQuery('loyalty', query);
     logger.info('paytm wallet transaction table updated for table: ', response[0]);
     return response[0];
   } catch(err) {
