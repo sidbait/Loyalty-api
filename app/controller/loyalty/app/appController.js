@@ -60,10 +60,10 @@ module.exports = {
                         let tempRes = dbResult[0].p_out_player_id.split('|')
                         let _response = tempRes[0] ? tempRes[0].trim() : tempRes[0]
 
-                        /* console.log(
-                            'req.query: ' + JSON.stringify(req.query) + '\n' +
-                            'req.body: ' + JSON.stringify(req.body)
-                        ) */
+                        console.log(
+                            'register req.query: ' + JSON.stringify(req.query) + '\n' +
+                            'register req.body: ' + JSON.stringify(req.body)
+                        )
 
                         let _player_id = tempRes[1]
                         let _player_app_id = tempRes[2]
