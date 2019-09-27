@@ -242,4 +242,29 @@ walletRouter.post('/paytm-update', async(req, res) => {
   }
 });
 
+walletRouter.post('/debit-matrix', async(req, res) => {
+  try {
+    logger.info(req.appId);
+    logger.info(req.userDetails);
+    const app = req.userDetails;
+    const {amount, matrix_code} = req.query;
+    let matrix = await walletController.generateDebitMatrix(app, amount, matrix_code);
+    return res.status(200).jsonp({
+      success: 1,
+      statusCode: 200,
+      message: 'debit matrix',
+      data: matrix
+    });
+  } catch(err) {
+    logger.error(err);
+    let statusCode = err.statusCode ? err.statusCode : 500;
+    return res.status(statusCode).send({
+      success: 0,
+      statusCode: statusCode,
+      message: err.message,
+      data: err.data ? err.data : ''
+    });
+  }
+});
+
 module.exports = walletRouter;
