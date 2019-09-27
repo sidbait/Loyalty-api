@@ -293,6 +293,20 @@ async function updateWalletTxnOrder(chmod, apTxnStatus, apTxnId, resStr, amount,
   }
 };
 
+async function getDebitMatrix(code) {
+  try {
+    let query = {
+      text: `select matrix_id, matrix_code, reward_balance, deposit_balance, winning_balance, fallback, status from tbl_wallet_debit_matrix where matrix_code = $1 limit 1;`,
+      values: [code]
+    };
+    let response = await pgConnect.executeQuery('loyalty', query);
+    logger.info('ddebit matrix code for a code passed: ', response[0]);
+    return response[0];
+  } catch(err) {
+    throw(err);
+  }
+};
+
 module.exports = {
   initBalance,
   addWalletTransaction,
@@ -305,5 +319,6 @@ module.exports = {
   addPaytmWalletTranx,
   paytmWalletTransactionUpdate,
   updateWalletTxnByOrderId,
-  updateWalletTxnOrder
+  updateWalletTxnOrder,
+  getDebitMatrix
 };

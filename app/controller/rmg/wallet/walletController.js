@@ -311,12 +311,158 @@ async function paytmWalletUpdate(app, orderId) {
   } catch(err) {
     throw(err);
   }
-}
+};
+
+async function generateDebitMatrix(app, amount, matrix_code) {
+  try {
+    let debitBalance = {};
+    // get debit matrix by code passed.
+    if (matrix_code == '') {
+      matrix_code = 'DEFAULT';
+    }
+    let matrix = await walletBalanceController.getDebitMatrix(matrix_code);
+    // get player wallet balance.
+    let playerBalance = await playerController.getPlayerWalletBalance(app.playerId, app.appId);
+    let actualAmount = Number(amount);
+    debitBalance.playerId = playerBalance.playerId;
+    debitBalance.winningBalance = Number(playerBalance.winning_balance);
+    debitBalance.rewardBalance = Number(playerBalance.reward_balance);
+    debitBalance.depositBalance = Number(playerBalance.deposit_balance);
+    debitBalance.bonus = playerBalance.bonus;
+    debitBalance.debitAmount = Number(amount);
+
+    let bAmt = 0;
+
+    if (matrix.reward_balance >= 0) {
+      debitBalance.rewardPercent = matrix.reward_balance;
+      debitReward = 0;
+
+      if (Number(debitBalance.rewardPercent) > 0) {
+        debitReward = ((Number(amount) * Number(debitBalance.rewardPercent)) / 100);
+        debitReward = Math.ceil(debitReward);
+        if (Number(playerBalance.reward_balance) > 0 && Number(amount) > 0) {
+          let drb = Number(playerBalance.reward_balance) - debitReward;
+          if (drb < 0) {
+            amount = Number(amount) - Number(playerBalance.reward_balance);
+            bAmt = Number(playerBalance.reward_balance);
+            debitBalance.debitRB = Number(playerBalance.reward_balance);
+            playerBalance.reward_balance = 0;
+          } else {
+            playerBalance.reward_balance = Number(playerBalance.reward_balance) - debitReward;
+            amount = Number(amount) - debitReward;
+            bAmt = amount;
+            debitBalance.debitRB = debitReward;
+          }
+        }
+      } else {
+        if (Number(playerBalance.reward_balance) > 0 && Number(amount) > 0) {
+          bAmt = Number(playerBalance.reward_balance) - Number(amount);
+          if (bAmt < 0) {
+            debitBalance.debitRB = Number(playerBalance.reward_balance);
+            amount = Number(amount) - Number(playerBalance.reward_balance);
+            playerBalance.reward_balance = 0;
+          } else {
+            debitBalance.debitRB = Number(amount);
+            playerBalance.reward_balance = Number(playerBalance.reward_balance) - Number(amount);
+            amount = 0;
+          }
+        }
+      }
+    }
+
+    if (Number(matrix.deposit_balance) >= 0) {
+      debitDeposit = 0;
+      if (Number(matrix.deposit_balance) > 0) {
+        debitDeposit = (Number(actualAmount) * Number(matrix.deposit_balance)) / 100;
+        debitDeposit = Math.ceil(debitDeposit);
+
+        if (Number(playerBalance.deposit_balance) > 0 && Number(amount) > 0) {
+          bAmt = Number(playerBalance.deposit_balance) - debitDeposit;
+          if (bAmt < 0) {
+            amount = Number(amount) - Number(playerBalance.deposit_balance);
+            bAmt = Number(playerBalance.deposit_balance);
+            debitBalance.debitDB = Number(playerBalance.deposit_balance);
+            playerBalance.deposit_balance = 0;
+          } else {
+            playerBalance.deposit_balance = Number(playerBalance.deposit_balance) - debitDeposit;
+            amount = Number(amount) - debitDeposit;
+            bAmt = amount;
+            debitBalance.debitDB = debitDeposit;
+          }
+        }
+      } else {
+        if (Number(playerBalance.deposit_balance) > 0 && Number(amount) > 0) {
+          bAmt = Number(playerBalance.deposit_balance) - Number(amount);
+          if (bAmt < 0) {
+            debitBalance.debitDB = Number(playerBalance.deposit_balance);
+            amt = amt - Number(playerBalance.deposit_balance);
+            playerBalance.deposit_balance = 0;
+          } else {
+            playerBalance.deposit_balance = Number(playerBalance.deposit_balance) - Number(amount);
+            debitBalance.debitDB = Number(amount);
+            amt = 0;
+          }
+        }
+      }
+    }
+
+    if (Number(matrix.winning_balance) >= 0) {
+      debitWinning = 0;
+      if (Number(matrix.winning_balance) > 0) {
+        debitWinning = (Number(actualAmount) * Number(matrix.winning_balance)) / 100;
+        debitWinning = Math.ceil(debitWinning);
+
+        if (Number(playerBalance.winning_balance) > 0 && Number(amount) > 0) {
+          bAmt = Number(playerBalance.winning_balance) - Number(debitWinning);
+          if (bAmt < 0) {
+            amount = Number(amount) - Number(playerBalance.winning_balance);
+            bAmt = playerBalance.winning_balance;
+            debitBalance.debitWB = playerBalance.winning_balance;
+            playerBalance.winning_balance = 0;
+          } else {
+            playerBalance.winning_balance = Number(playerBalance.winning_balance) - Number(debitWinning);
+            amount = Number(amount) - Number(debitWinning);
+            bAmt = amount;
+            debitBalance.debitWB = debitWinning;
+          }
+        }
+      } else {
+        if (Number(playerBalance.winning_balance) > 0 && Number(amount) > 0) {
+          bAmt = Number(playerBalance.winning_balance) - Number(amount);
+          if (bAmt < 0) {
+            debitBalance.debitWB = Number(playerBalance.winning_balance);
+            amount = Number(amount) - Number(playerBalance.winning_balance);
+            playerBalance.winning_balance = 0;
+          } else {
+            playerBalance.winning_balance = Number(playerBalance.winning_balance) - Number(amount);
+            debitBalance.debitWB = Number(amount);
+            amount = 0;
+          }
+        }
+      }
+    }
+
+    if (amount != 0) {
+      debitBalance.depositAmount = Number(amount);
+      debitBalance.isDeposit = true;
+    };
+    debitBalance.totalAmount = Number(debitBalance.debitAmount) - Number(amount);
+
+    debitBalance.afterDebitRB = Number(playerBalance.reward_balance);
+    debitBalance.afterDebitDB = Number(playerBalance.deposit_balance);
+    debitBalance.afterDebitWB = Number(playerBalance.winning_balance);
+
+    return debitBalance;
+  } catch(err) {
+    throw(err);
+  }
+};
 
 module.exports = {
   creditWallet,
   debitWallet,
   paytmCreate,
   playerWalletBalDetail,
-  paytmWalletUpdate
+  paytmWalletUpdate,
+  generateDebitMatrix
 };
