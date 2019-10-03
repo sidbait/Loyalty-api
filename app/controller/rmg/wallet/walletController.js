@@ -333,7 +333,7 @@ async function generateDebitMatrix(app, amount, matrix_code) {
 
     let bAmt = 0;
 
-    if (matrix.reward_balance >= 0) {
+    if (Number(matrix.reward_balance) >= 0) {
       debitBalance.rewardPercent = matrix.reward_balance;
       debitReward = 0;
 
@@ -395,12 +395,12 @@ async function generateDebitMatrix(app, amount, matrix_code) {
           bAmt = Number(playerBalance.deposit_balance) - Number(amount);
           if (bAmt < 0) {
             debitBalance.debitDB = Number(playerBalance.deposit_balance);
-            amt = amt - Number(playerBalance.deposit_balance);
+            amount = Number(amount) - Number(playerBalance.deposit_balance);
             playerBalance.deposit_balance = 0;
           } else {
             playerBalance.deposit_balance = Number(playerBalance.deposit_balance) - Number(amount);
             debitBalance.debitDB = Number(amount);
-            amt = 0;
+            amount = 0;
           }
         }
       }
